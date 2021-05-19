@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<body bgcolor="black">
+<canvas id="canvasArea" style="border:1px solid #555555;" onkeyup="keyUp">
+Your browser is bad
+</canvas>
+<script type="text/javascript">
+var inited = false;
+var w=window.innerWidth - 30;
+var h=window.innerHeight - 30;
+var canvas = document.getElementById('canvasArea');
+var ctx = canvas.getContext('2d');
+var P = new circle(w/2,h/3,5,0,0,genColor());
+var count = 0;
+var status = 'Play';
+var keys = [];
+var circles = [];
+var rectangles = [];
+var winnar = 10;
+
+setInterval(update, 1000/30);
+ctx.lineWidth=1;
+
+function init(){
+    canvas.width = w;
+    canvas.height = h;
+	circles[0] = P;
+    inited = true;
+}
+
+function update(){
+    if(!inited){init();}
+    clearCanvas();
+
+    for(var i = 0; i < circles.length; i++){move(circles[i], 0);}
+    //check for collisions.
+    for(var i = 0; i < circles.length; i++){
+        for(var j = i+1; j < circles.length; j++){
+            checkCollision(circles[i], circles[j], 0);
+        }
+    }
+   
+    //handle Input
+    for(var i=0; i<keys.length; i++){
+        switch(keys[i]){
+            case 37:
+                P.vx+=-.2;
+                break;
+            case 38:
+                P.vy+=-.2;
+                break;
+            case 39:
+                P.vx+=.2;
+                break;
+            case 40:
+                P.vy+=.2;
+                break;
+			case 107:
+				winnar--;
+				var min = 3;
+				if(winnar < min){winnar = min;}
+				break;
+			case 109:
+				winnar++;
+				var max = 50;
+				if(winnar > max){winnar = max;}
+				break;
+            default:
+                 break;
+        }
+    }
+    if(status == 'Play'){
+        move(P);
+        var addBall = false;
+        for(var i=0; i<circles.length; i++){
+			if(circles[i] != null){
+				if(distance(P.x,P.y,circles[i].x,circles[i].y) < P.r+circles[i].r){
+					if(P.r >= circles[i].r){
+						P.r++;
+						circles[i] = null;
+						circles.splice(i,1);
+						i--;
+						addBall = true;
+					}
+					else {
+						P.r-=circles[i].r - P.r;
+						circles[i] = null;
+						circles.splice(i,1);
+						i--;
+						addBall = true;
+					}
+				}
+			}
+        }
+       
+           
+        if(count >= circles.length * 50 && circles.length < 30){
+			addBall = true;
+            count = 0;
+        }
+        count++;
+		
+		if(addBall){
+			var r = ((Math.random()-.5)*8) + P.r
+            var x = (Math.random() * (w - (r*2))) + r;
+            var y = (Math.random() * (h - (r*2))) + r;
+            var vx = (Math.random() * 3) -2;
+            var vy = (Math.random() * 3) -2;
+            circles[circles.length] = new circle(x,y,r,vx,vy,genColor());
+		}
+       
+        if(P.r > Math.sqrt(w*h) / winnar){//Win
+            status = 'Win';
+            circles = [];
+        }
+        if(P.r <= 3 || status == 'Lose') {//Lose
+            status = 'Lose';
+            circles = [];
+        }
+    }
+    else{
+        if(circles.length < 40){
+            var r = (Math.random() * 10) + 5;
+			var x = Math.random() * (w - ((r+P.r)*2));
+			var y = Math.random() * (h - ((r+P.r)*2));
+			if(x > P.x-P.r){x+=P.r+P.r;}
+			if(y > P.y-P.r){y+=P.r+P.r;}
+			
+            var vx = (Math.random()-1)*4;
+            var vy = (Math.random()-1)*4;
+            circles[circles.length] = new circle(x,y,r,vx,vy,genColor());
+        }
+    }
+
+    draw();
+}
+
+document.onkeydown = function(e){
+    if(!contains(keys, e.keyCode)) {
+        keys[keys.length] = e.keyCode;
+    }
+}
+
+document.onkeyup = function(e){
+    for(var i=0; i<keys.length; i++){
+        if(keys[i] == e.keyCode){
+            keys.splice(i,1);
+            i--;
+        }
+    }
+}
+
+function contains(a, obj) {
+    for (var i = 0; i < a.length; i++) {
+        if (a[i] === obj) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function draw(){
+    for(var i = 0; i < circles.length; i++){circles[i].draw(ctx);}
+    if(status=='Play'){
+        P.draw(ctx);
+       
+        ctx.fillStyle='#888888';
+        ctx.textAlign='left';
+		ctx.font="8pt sans-serif";
+
+        var score = (P.r * P.r * Math.PI * 10000) / (w*h);
+        score = Math.round(score)/100;
+        
+		var win = Math.sqrt(w*h) / winnar;
+		win = (win * win * Math.PI * 10000) / (w*h);
+		win = Math.round(win) / 100;
+
+		ctx.fillText(score+'/'+win+'%',0,15);
+
+        if(P.r == 5){
+            ctx.textAlign='center';
+            ctx.fillText('Use Arrow Keys.',w/2,h/2);
+            ctx.fillText('Absorb the smaller circles.',w/2,h/2 + 10);
+            ctx.fillText('Avoid the bigger circles.',w/2,h/2 + 20);
+            ctx.fillText('Lose if you get too small.  Win if you cover PI% of the box.',w/2,h/2 + 40);
+        }
+       
+       
+        var temp = w*(count / (circles.length * 100));
+        ctx.fillRect(0,0,temp,2);
+    }
+    else{
+        ctx.fillStyle = genColor();
+        ctx.font="24pt sans-serif";
+        ctx.textAlign='center';
+        ctx.fillText(status, w/2,h/3);
+    }
+}
+
+//type:0=circle; 1=rectangle
+function move(p){
+    var flipx = 0;
+    var flipy = 0;
+    //checks for edge
+    if(p.x<p.r) flipx = 1;
+    else if (p.x> w-p.r) flipx = -1;
+    if(p.y<p.r) flipy = 1;
+    else if(p.y> h-p.r) flipy = -1;
+    if(flipx!=0 ){p.vx=Math.abs(p.vx)*flipx; }
+    if(flipy!=0){p.vy=Math.abs(p.vy)*flipy; }
+    p.x += p.vx;
+    p.y += p.vy;
+}
+//type:0=circle+circle; 1=circle+rectangle; 2=rectangle+circle; 3=rectangle+rectangle
+function checkCollision(p1, p2, type){
+    if(distance(p1.x, p1.y, p2.x, p2.y) < (p1.r + p2.r)){
+        var a1 = calcAngle(p1.x - p2.x, p1.y - p2.y);
+        var a2 = calcAngle(p2.x - p1.x, p2.y - p1.y);
+
+        //bounce
+        var u1 = Math.sqrt((p1.vx*p1.vx) + (p1.vy*p1.vy));
+        var u2 = Math.sqrt((p2.vx*p2.vx) + (p2.vy*p2.vy));
+       
+        var m1 = p1.r * p1.r * 3;
+        var m2 = p2.r * p2.r * 3;
+       
+        var v1 = (u1*(m1-m2) + 2*m2*u2) / (m1 + m2);
+        var v2 = (u2*(m2-m1) + 2*m1*u1) / (m1 + m2);
+
+        var v1x = p1.vx + Math.cos(a1)*v1;
+        var v1y = p1.vy + Math.sin(a1)*v1*-1;
+        var v2x = p2.vx + Math.cos(a2)*v2;
+        var v2y = p2.vy + Math.sin(a2)*v2*-1;
+
+        var scale = (u1 + u2) / (Math.sqrt((v1x*v1x) + (v1y*v1y)) + Math.sqrt((v2x*v2x) + (v2y*v2y)));
+
+        v1x = v1x * scale;
+        v1y = v1y * scale;
+        v2x = v2x * scale;
+        v2y = v2y * scale;
+       
+        p1.vx = v1x;
+        p1.vy = v1y;
+        p2.vx = v2x;
+        p2.vy = v2y;
+    }
+}
+
+function distance(x1, y1, x2, y2) {
+    var x = x1-x2;
+    var y = y1-y2;
+    var d = (x*x) + (y*y);
+    return Math.sqrt(d);
+}
+
+function clearCanvas() {ctx.clearRect(0, 0, w, h);}
+
+function circle(x, y, r, vx, vy, fill){   
+    this.type = 'Circle'
+    this.x = x||0;
+    this.y = y||0;
+    this.r = r||0;
+    this.vx = vx||0;
+    this.vy = vy||0;
+    this.fill = fill||'#AAAAAA';
+}
+
+circle.prototype.draw = function(ctx){
+    ctx.fillStyle = this.fill;
+    ctx.beginPath();
+    ctx.fillStyle = this.fill;
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2, true);
+    ctx.fill();
+    ctx.closePath();
+}
+
+function calcAngle(x, y){
+    var a = Math.atan(-y/x);
+    var pi2 = Math.PI*2;
+    while(a < 0) a+=pi2;
+    if(x<0) a+=Math.PI;
+    while(a>pi2) a-=pi2;
+    return a;
+}
+
+function genColor(){
+    var chars = "123456789ABCDEF".split('');
+    var output = '#';
+    for(var i = 0; i < 6; i++){
+        output += chars[Math.round(Math.random() * chars.length)];
+    }
+    return output;
+}
+</script>
+</body>
+</html>
