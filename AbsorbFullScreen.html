@@ -5,18 +5,20 @@
 Your browser is bad
 </canvas>
 <script type="text/javascript">
+//TODO: color code balls by how safe to absorb they are?
 var inited = false;
 var w=window.innerWidth - 30;
 var h=window.innerHeight - 30;
 var canvas = document.getElementById('canvasArea');
 var ctx = canvas.getContext('2d');
-var P = new circle(w/2,h/3,5,0,0,genColor());
+var P = new circle(w/2,h/3,5,0,0,"#0077FF");
 var count = 0;
 var status = 'Play';
 var keys = [];
 var circles = [];
 var rectangles = [];
 var winnar = 10;
+var twoPi = Math.PI*2;
 
 setInterval(update, 1000/30);
 ctx.lineWidth=1;
@@ -119,7 +121,7 @@ function update(){
         }
     }
     else{
-        if(circles.length < 40){
+        if(circles.length < 100){
             var r = (Math.random() * 10) + 5;
 			var x = Math.random() * (w - ((r+P.r)*2));
 			var y = Math.random() * (h - ((r+P.r)*2));
@@ -177,15 +179,6 @@ function draw(){
 
 		ctx.fillText(score+'/'+win+'%',0,15);
 
-        if(P.r == 5){
-            ctx.textAlign='center';
-            ctx.fillText('Use Arrow Keys.',w/2,h/2);
-            ctx.fillText('Absorb the smaller circles.',w/2,h/2 + 10);
-            ctx.fillText('Avoid the bigger circles.',w/2,h/2 + 20);
-            ctx.fillText('Lose if you get too small.  Win if you cover PI% of the box.',w/2,h/2 + 40);
-        }
-       
-       
         var temp = w*(count / (circles.length * 100));
         ctx.fillRect(0,0,temp,2);
     }
@@ -266,12 +259,12 @@ function circle(x, y, r, vx, vy, fill){
 }
 
 circle.prototype.draw = function(ctx){
-    ctx.fillStyle = this.fill;
     ctx.beginPath();
-    ctx.fillStyle = this.fill;
-    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2, true);
+    ctx.fillStyle = this.r>P.r?"#F00":this.fill;
+    ctx.arc(this.x, this.y, this.r, 0, twoPi, true);
     ctx.fill();
     ctx.closePath();
+	ctx.fillStyle='#000';
 }
 
 function calcAngle(x, y){
@@ -287,7 +280,9 @@ function genColor(){
     var chars = "123456789ABCDEF".split('');
     var output = '#';
     for(var i = 0; i < 6; i++){
-        output += chars[Math.round(Math.random() * chars.length)];
+		var index = Math.round(Math.random() * chars.length);
+		index = Math.min(chars.length-1, index);
+        output += chars[index];
     }
     return output;
 }
