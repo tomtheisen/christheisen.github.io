@@ -1,0 +1,29 @@
+
+<html>
+<head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+	<title>HTML5 Classification Chart</title>
+</head>
+<body>
+
+Enter JSON of nodes to chart: <br/>
+<ul>
+	<li>name: optional, string, name/header of node</li>
+	<li>desc: optional, string, description of node</li>
+	<li>child: optional, array of nodes</li>
+</ul>
+<textarea id="txt"style="height:20%;width:80%;">
+{"name":"Animal Classifications","child":[{"name":"Tetrapods","desc":"Four-limbed Vertebrates","child":[{"name":"Mammals","desc":"Warm blooded","child":[{"name":"Cat","desc":"Snuggle claws"},{"name":"Dog","desc":"Easily excitable"},{"name":"Bear","desc":"Big omnivore"}]},{"name":"Reptiles","desc":"Cold blooded","child":[{"name":"Iguana","desc":"Spooky"},{"name":"Bearded Lizard","desc":"Little funny looking things"}]}]},{"name":"Molluscks","desc":"Invertibrates","child":[{"name":"Cephalopod","desc":"Smart squishy things","child":[{"name":"Octopus","desc":"Can be venomous"},{"name":"Squid","desc":"Large eyes"},{"name":"Cuttlefish","desc":"Not really a fish"}]},{"name":"Slugs","desc":"What are they good for?"}]}]}
+</textarea><br/>
+<button onclick="ParseJSONTree()">Update</button>
+
+
+<hr/>
+<canvas id="canvasArea" style="border:1px solid #000;" ></canvas>
+
+<script src="OrgChart.js"></script>
+<!-- -><script src="Umbrella.js"></script><!-- -->
+</body>
+</html>
+
