@@ -216,6 +216,7 @@ document.onkeypress = function (event) {
 		shift[0]=0;
 		shift[1]=0;
 		document.getElementById("zoomOrbit").value = 350/cc[3].r;
+		document.getElementById("zoomSize").value = 10;
 		setZoomOrbit();
 		sizeScale=10;
 	}
@@ -223,6 +224,7 @@ document.onkeypress = function (event) {
 		shift[0]=0;
 		shift[1]=0;
 		document.getElementById("zoomOrbit").value = 350/cc[4].r;
+		document.getElementById("zoomSize").value = 5;
 		setZoomOrbit();
 		sizeScale=5;
 	}
@@ -230,6 +232,7 @@ document.onkeypress = function (event) {
 		shift[0]=0;
 		shift[1]=0;
 		document.getElementById("zoomOrbit").value = 350/cc[5].r;
+		document.getElementById("zoomSize").value = 2;
 		setZoomOrbit();
 		sizeScale=2;
 	}
@@ -237,6 +240,7 @@ document.onkeypress = function (event) {
 		shift[0]=0;
 		shift[1]=0;
 		document.getElementById("zoomOrbit").value = 350/cc[6].r;
+		document.getElementById("zoomSize").value = 1;
 		setZoomOrbit();
 		sizeScale=1;
 	}
@@ -244,6 +248,7 @@ document.onkeypress = function (event) {
 		shift[0]=0;
 		shift[1]=0;
 		document.getElementById("zoomOrbit").value = 350/cc[7].r;
+		document.getElementById("zoomSize").value = 1;
 		setZoomOrbit();
 		sizeScale=1;
 	}
