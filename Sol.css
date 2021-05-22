@@ -1,0 +1,27 @@
+body{
+	background-color:#000;
+	color:#AAA;
+}
+
+li{
+	list-style:none;
+	margin-bottom:5px;
+}
+
+.modalContainer{
+	display:none;
+	position:fixed;
+	z-index:1;
+	left:0;
+	top:0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	background-color: rgba(0,0,0,0.4);
+}
+.modalContent{
+	margin: 5% auto;
+	padding: 20px;
+	width: 600px;
+	background-color:#333;
+}

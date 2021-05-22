@@ -1,0 +1,52 @@
+<html>
+<head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+	<title>Sol Sim</title>
+	<link rel="stylesheet" type="text/css" href="Sol.css">
+</head>
+<body>
+	<div id="help" class="modalContainer" onclick="this.style.display='none';">
+		<div id="helpContent" class="modalContent">
+			<span style="float:right">Press [H] to toggle this help.</span>
+			<h1>Help:</h1>
+			<hr/>
+			<h3>Scale Notes:</h3>
+			<ul>
+				<li>Planet Radii are approximately to scale with eachother (Mercury=1)</li>
+				<li>Orbit Radii are circular based on the average distance from the sun and are approximately to scale with eachother (Mercury=1)</li>
+				<li>Orbit Speed are constant, based on average orbital velocity, and approximately to scale with eachother (Neptune=1)</li>
+				<li>Orbit Radii are not to scale with Planet Radii</li>
+			</ul>
+			<h3>Keyboard Controls</h3>
+			<ul>
+				<li>E toggle Sun</li>
+				<li>R Reset</li>
+				<li>= Scale orbit radii to planet radii (Don't get lost)</li>
+				<li>WASD or Click+Drag to move</li>
+				<li>Numbers 1-8 teleport to that planets current location (hold to follow)</li>
+				<li>Shift+1-8 set orbit scale to that planet</li>
+			</ul>
+		</div>
+	</div>
+	<div style="width:200;height:200;float:right;">
+		<canvas id="MapArea" style="border:1px solid #111;" ></canvas>
+	</div>
+	<p>
+		Orbit scale:
+		<input id="zoomOrbit" type="range" min="5" max="38200" value="5" step="1" onchange="setZoomOrbit()" oninput="setZoomOrbit()" style="width:800"></input>
+	</p>
+	<p>
+		Planet size:
+		<input id="zoomSize" type="range" min="1" max="100" value="1" step="1" onchange="setZoomSize()" oninput="setZoomSize()" style="width:800"></input>
+	</p>
+	<p>
+		Orbit speed:
+		<input id="speed" type="range" min="-1" max="1" value=".01" step=".01" onchange="setSpeed()" oninput="setSpeed()" style="width:800"></input>
+	</p>
+	<div style="width:1200px; margin: 0 auto;">
+	<canvas id="SolSimArea" style="border:1px solid #111;" ></canvas>
+	</div>
+	<script src="Sol.js"></script>
+</body>
+</html>
