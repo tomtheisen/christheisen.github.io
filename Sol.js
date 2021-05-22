@@ -252,6 +252,8 @@ document.onkeypress = function (event) {
 		isDrawSun=true;
 		document.getElementById("zoomOrbit").value = 38199;
 		document.getElementById("zoomSize").value = 1;
+		setZoomOrbit();
+		sizeScale=1;
 		shift = [0,0];
 	}
 	else if(event.which == 115){
