@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<style>
+			h1{
+				cursor: pointer;
+				border: solid 1px #000;
+				font-family: sans-serif;
+				text-align: center;
+			}
+			
+			ul{
+				list-style-type: none;
+				background-color: #999;
+				max-height: 400px;
+				overflow: scroll;
+			}
+			
+			button {
+				padding: 5px;
+				margin: 5px;
+				width: 90%;
+				font-size: 36pt;
+				cursor: pointer;
+			}
+		
+			.played {
+				background-color: #7F7;
+				cursor: not-allowed;
+				
+				padding: 5px;
+				margin: 5px;
+				width: 20%;
+				font-size: 12pt;
+			}
+			
+			.playing {
+				background-color: #FF7;
+			}
+			
+			.unplayed {
+				background-color: #F77;
+			}
+			
+			.hide {
+				display: none;
+			}
+			
+			.timer {
+				font-size: 48pt;
+			}
+			
+		</style>
+		<script>
+			let intervalID = null;
+			let time = null;
+			let timeout = null;
+			let isPlaying = false;
+			let lastPlayed = null;
+			let loop = false;
+			chkChange = (chk) => { loop = chk.checked; }
+			
+			const audio = {
+				fileNotFound: new Audio('.\\audio\\fileNotFound.mp3')
+			}
+			
+			const ended = (btn) => {
+				isPlaying = false;
+				
+				if(btn.id.includes('done')){
+					btn.classList.remove('playing');
+					btn.classList.add('played');
+				}
+
+				
+				const delay = document.getElementById('numDelay').value * 1000;
+				if(loop){ 
+					timeout = setTimeout(() => play(btn), delay); 
+				}
+			}
+			
+			const stuff = {
+				Misc:['awesome'],
+				Morning:['wake', 'breakfast', 'milk', 'medicine', 'teeth', 'dress', 'hamper', 'bed', 'potty', 'shoes', 'done'],
+				Evening:['undress', 'bathe', 'pjs', 'milk', 'medicine', 'teeth', 'hamper', 'sleep', 'done']
+			};
+			
+			const toggleGroup = (input) => {
+				const uls = document.getElementsByTagName('ul');
+				for(ul of uls){
+					ul.classList.add('hide');
+				}
+				input.classList.remove('hide');
+			}
+			
+			const makeButton = (root, group, names) => {
+				names.forEach(x => {
+					const li = document.createElement('li');
+					const btn = document.createElement('button');
+					btn.id=`${group}_${x}`;
+					btn.textContent = x;
+					btn.addEventListener('click', () => play(btn));
+					btn.classList.add('unplayed');
+					li.appendChild(btn);
+					root.appendChild(li);
+				
+					audio[btn.id] = new Audio(`.\\audio\\${x}.mp3`);
+					audio[btn.id].addEventListener('ended', () => ended(btn));
+					audio[btn.id].addEventListener('error', () => play('fileNotFound'));
+				});
+			}
+			const init = () => {
+				const root = document.getElementById('stuffHere');
+				for(x in stuff) {
+					const div = document.createElement('div');
+					const h1 = document.createElement('h1');
+					const ul = document.createElement('ul');
+
+					div.id = x;
+					h1.addEventListener('click', () => toggleGroup(ul));
+					h1.textContent = x;
+					div.appendChild(h1);
+					ul.id = `ul_${x}`;
+					ul.classList.add('hide');
+					div.appendChild(ul);
+					
+					makeButton(ul, x, stuff[x]);
+					root.appendChild(div);
+				}
+			}
+			
+			const play = (btn) => { 
+				if(isPlaying){return;}
+				if([...btn.classList].includes('played')){ return; }
+				
+				if(timeout){
+					clearTimeout(timeout);
+				}
+
+				if(!btn || !audio[btn.id]){
+					console.log(audio);
+					audio.fileNotFound.play();
+					return;
+				}
+				isPlaying = true;
+				audio[btn.id].play();
+				
+				btn.classList.remove('unplayed');
+				btn.classList.add('playing');
+				
+				if(lastPlayed && lastPlayed !== btn
+					&& !btn.id.includes('Misc')){
+					lastPlayed.classList.remove('playing');
+					lastPlayed.classList.add('played');
+				}
+				if(!btn.id.includes('Misc')){
+					lastPlayed = btn;
+				}
+			}
+			
+			const awesome = new Audio('.\\audio\\awesome.mp3');
+			const playAwesome = () => { awesome.play(); }
+			
+			const startTimer = (input) => {
+				if(intervalID){
+					clearInterval(intervalID);
+				};
+
+				time = document.getElementById('numTimer').value * 60;
+				const clock = document.getElementById('timer');
+				renderTimer(clock);
+				
+				let magic = setInterval(() => renderTimer(clock), 1000);
+				intervalID = magic;// for some reason if I just set intervalID directly it doesn't work.
+			}
+			
+			const renderTimer = (clock) => {
+				const minutes = parseInt(time / 60, 10).toString().padStart(2, '0');
+				const seconds = parseInt(time % 60, 10).toString().padStart(2, '0');
+
+				clock.textContent = `${minutes}:${seconds}`;
+
+				if (--time < 0) {
+					clearInterval(intervalID);
+				}
+			}
+		</script>
+	</head>
+	<body onload='init()'>
+		<div id='stuffHere'>
+		</div>
+		<div style='float:right;'>
+			<label for='numTimer' >Timer (in minutes):</label>
+			<input id='numTimer' type='number' min='1' max='20' value='1'>
+			<button id='start' onclick='startTimer()'>Start</button>
+			<div id='timer' class='timer'></div>
+		</div>
+		<div>
+			<label for='chkLoop'>Loop</label>
+			<input id='chkLoop' type='checkbox' onchange='chkChange(this)'><br/>
+			<label for='numDelay' >Delay (in seconds):</label>
+			<input id='numDelay' type='number' min='0' max='10' value='1'>
+		</div>
+		<div>
+			<h3>Thanks</h3>
+			Audio generated from: <a href='https://freetts.com/'>https://freetts.com/</a>
+		</div>
+	</body>
+</html>
