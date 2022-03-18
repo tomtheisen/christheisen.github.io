@@ -1,0 +1,54 @@
+h1{
+	cursor: pointer;
+	border: solid 1px #000;
+	font-family: sans-serif;
+	text-align: center;
+}
+
+.timerBtn {
+	width: 45%;
+	font-size: 18pt;
+}
+
+.buttonBucket .activity {
+	padding: 5px;
+	margin: 5px 0;
+	width: 100%;
+	font-size: 36pt;
+	cursor: pointer;
+}
+
+.buttonBucket {
+	list-style-type: none;
+	background-color: #999;
+	max-height: 300px;
+	overflow: hidden;
+}
+
+.buttonBucket .activity.played {
+	background-color: #7F7;
+	cursor: not-allowed;
+	display: inline;
+	
+	padding: 5px;
+	margin: 5px;
+	width: 7%;
+	font-size: 12pt;
+}
+
+.playing {
+	background-color: #FF7;
+}
+
+.unplayed {
+	background-color: #F77;
+}
+
+.hide {
+	display: none;
+}
+
+.timer {
+	font-size: 48pt;
+	
+}
