@@ -13,6 +13,15 @@ const playAwesome = (btn) => {
 	awesome.play(); 
 	setTimeout(() => {isPlaying = false; play(btn);}, 1500); 
 }
+const timeElapsed = new Audio('.\\audio\\timer.mp3');
+const playTimeElapsed = (btn) => { 
+	timeElapsed.play(); 
+	if(lastPlayed){
+		setTimeout(() => {isPlaying = false; play(lastPlayed);}, 3500); 
+	}
+}
+
+
 const audio = {
 	fileNotFound: new Audio('.\\audio\\fileNotFound.mp3')
 }
@@ -37,121 +46,146 @@ const stuff = {
 		{
 			name:'clean',
 			text:'Clean Up!',
-			reminders: 0
+			reminders: 0,
+			time: 5
 		}
 	],
 	Morning:[
 		{
 			name:'wake',
 			text:'Wake Up!',
-			reminders: 0
+			reminders: 0,
+			time: 5
 		}, 
 		{
 			name:'breakfast',
 			text:'Eat Up!',
-			reminders: 0
+			reminders: 0,
+			time: 15
 		},
 		{
 			name: 'milk',
 			text:'Drink Up!',
-			reminders: 0
+			reminders: 0,
+			time: 5
 		}, 
 		{
 			name:'medicine',
 			text:'Medicine Time!',
-			reminders: 0
+			reminders: 0,
+			time: 1
 		}, 
 		{
 			name:'teeth',
 			text:'Brush Your Teeth!',
-			reminders: 0
+			reminders: 0,
+			time: 2
 		}, 
 		{
 			name:'dress',
 			text:'Clothes On!',
-			reminders: 0
+			reminders: 0,
+			time: 5
 		}, 
 		{
 			name:'hamper',
 			text:'Clothes in Hamper!',
-			reminders: 0
+			reminders: 0,
+			time: 1
 		}, 
 		{
 			name:'bed',
 			text:'Make Your Bed!',
-			reminders: 0
+			reminders: 0,
+			time: 2
 		},
 		{
 			name:'potty',
 			text:'Potty Time!',
-			reminders: 0
+			reminders: 0,
+			time: 5
 		}, 
 		{
 			name:'shoes',
 			text:'Shoes On!',
-			reminders: 0
+			reminders: 0,
+			time: 5
 		}, 
 		{
 			name:'done',
 			text:'Good Work!',
-			reminders: 0
+			reminders: 0,
+			time: 0
 		}
 	],
 	Evening:[
 		{
 			name:'undress',
 			text:'Clothes Off!',
-			reminders: 0
+			reminders: 0,
+			time: 1
 		}, 
 		{
 			name:'bathe',
 			text:'Bath Time!',
-			reminders: 0
+			reminders: 0,
+			time: 5
 		}, 
 		{
 			name:'pjs',
 			text:'Pajamas On!',
-			reminders: 0
+			reminders: 0,
+			time: 5
 		}, 
 		{
 			name:'milk',
 			text:'Drink Up!',
-			reminders: 0
+			reminders: 0,
+			time: 5
 		}, 
 		{
 			name:'medicine',
 			text:'Medicine Time!',
-			reminders: 0
+			reminders: 0,
+			time: 1
 		}, 
 		{
 			name:'teeth',
 			text:'Brush Your Teeth!',
-			reminders: 0
+			reminders: 0,
+			time: 2
 		}, 
 		{
 			name:'hamper',
 			text:'Clothes in Hamper!',
-			reminders: 0
+			reminders: 0,
+			time: 1
 		}, 
 		{
 			name:'sleep',
 			text:'Bed Time!',
-			reminders: 0
+			reminders: 0,
+			time: 1
 		}, 
 		{
 			name:'done',
 			text:'Good Work!',
-			reminders: 0
+			reminders: 0,
+			time: 0
 		}]
 };
+
+
+const getActivity = (id) => {
+	const group = id.split('_')[0];
+	const name = id.split('_')[1];
+	return stuff[group].filter(x => x.name === name)[0];//todo: robustify this.
+}
 
 const remind = () => {
 	if(!lastPlayed?.id?.includes('_')){return;}
 	
-	const group = lastPlayed.id.split('_')[0];
-	const name = lastPlayed.id.split('_')[1];
-	
-	stuff[group].filter(x => x.name === name)[0].reminders++;
+	getActivity(lastPlayed.id).reminders++;
 	
 	updateReminderDisplay(group, name);
 }
@@ -188,6 +222,10 @@ const updateReminderDisplay = (group, name) => {
 	}
 }
 	
+const defaultTime = (id) => {
+	document.getElementById('numTimer').value = getActivity(id).time;
+	startTimer();
+}
 
 const toggleGroup = (input) => {
 	const buckets = document.getElementsByClassName('buttonBucket');
@@ -255,17 +293,22 @@ const play = (btn) => {
 		audio[btn.id].play();
 	}
 	
+	if(!intervalID){//no timer going, go a timer.
+		defaultTime(btn.id);
+	}
 	
+	if(lastPlayed && lastPlayed !== btn){
+		//new activity, go a timer.
+		defaultTime(btn.id);
 	
-	btn.classList.remove('unplayed');
-	btn.classList.add('playing');
-	
-	if(lastPlayed && lastPlayed !== btn
-		&& !btn.id.includes('Misc')){
-		lastPlayed.classList.remove('playing');
-		lastPlayed.classList.add('played');
+		if(!btn.id.includes('Misc')){
+			lastPlayed.classList.remove('playing');
+			lastPlayed.classList.add('played');
+		}
 	}
 	if(!btn.id.includes('Misc')){
+		btn.classList.remove('unplayed');
+		btn.classList.add('playing');
 		lastPlayed = btn;
 	}
 }
@@ -302,6 +345,7 @@ const renderTimer = (clock) => {
 	
 	if (--time < 0) {
 		clearInterval(intervalID);
+		playTimeElapsed();
 	}
 }
 
