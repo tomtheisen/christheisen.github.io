@@ -6,6 +6,7 @@ let timeout = null;
 let isPlaying = false;
 let lastPlayed = null;
 let loop = false;
+let dataLoaded = false;
 const chkChange = (chk) => { loop = chk.checked; }
 
 const awesome = new Audio('.\\audio\\awesome.mp3');
@@ -41,7 +42,8 @@ const ended = (btn) => {
 	}
 }
 
-const stuff = {
+let stuff = {};
+const Isaiah = {
 	Misc:[
 		{
 			name:'clean',
@@ -175,6 +177,46 @@ const stuff = {
 		}]
 };
 
+const loadData = (input) => {
+	const root = document.getElementById('stuffHere');
+	stuff = input;
+	for(let x in stuff) {
+		const div = document.createElement('div');
+		const h1 = document.createElement('h1');
+		const btns = document.createElement('div');
+		
+		div.id = x;
+		h1.addEventListener('click', () => toggleGroup(btns));
+		h1.textContent = x;
+		div.appendChild(h1);
+		btns.id = `bucket_${x}`;
+		btns.classList.add('hide');
+		btns.classList.add('buttonBucket');
+		div.appendChild(btns);
+		
+		makeButton(btns, x, stuff[x]);
+		root.appendChild(div);
+	}
+	
+	document.getElementById('selector').classList.add('hide');
+	document.getElementById('bottomPart').classList.remove('hide');
+	dataLoaded = true;
+}
+
+const selectKid = (btn) => {
+	console.log(btn);
+	switch(btn.id){
+		case 'Isaiah':
+			loadData(Isaiah);
+			break;
+		case 'Caleb':
+			alert("Sorry, I don't have any tasks for you");
+			break;
+		default:
+			alert("Sorry, I don't have any tasks for you");
+			break;
+	}
+}
 
 const getActivity = (id) => {
 	const group = id.split('_')[0];
@@ -250,26 +292,7 @@ const makeButton = (root, group, names) => {
 		audio[btn.id].addEventListener('error', () => play('fileNotFound'));
 	});
 }
-const init = () => {
-	const root = document.getElementById('stuffHere');
-	for(let x in stuff) {
-		const div = document.createElement('div');
-		const h1 = document.createElement('h1');
-		const btns = document.createElement('div');
-		
-		div.id = x;
-		h1.addEventListener('click', () => toggleGroup(btns));
-		h1.textContent = x;
-		div.appendChild(h1);
-		btns.id = `bucket_${x}`;
-		btns.classList.add('hide');
-		btns.classList.add('buttonBucket');
-		div.appendChild(btns);
-		
-		makeButton(btns, x, stuff[x]);
-		root.appendChild(div);
-	}
-}
+
 
 const play = (btn) => { 
 	if(isPlaying){return;}
@@ -348,5 +371,3 @@ const renderTimer = (clock) => {
 		playTimeElapsed();
 	}
 }
-
-init();

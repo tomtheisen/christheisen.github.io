@@ -5,6 +5,23 @@ h1{
 	text-align: center;
 }
 
+.selector{
+	padding: 5px;
+	margin: 5px 0;
+	width: 100%;
+	font-size: 36pt;
+	font-family: sans-serif;
+	text-align:center;
+}
+
+.kidButton {
+	padding: 5px;
+	margin: 5px 0;
+	width: 20%;
+	font-size: 36pt;
+	cursor: pointer;
+}
+
 .timerBtn {
 	width: 45%;
 	font-size: 18pt;
@@ -44,10 +61,6 @@ h1{
 	background-color: #F77;
 }
 
-.hide {
-	display: none;
-}
-
 .timer {
 	font-size: 64pt;
 	
@@ -81,3 +94,8 @@ h1{
 .reminderLabel{
 	width: 250px;
 }
+
+.hide {
+	display: none;
+}
+

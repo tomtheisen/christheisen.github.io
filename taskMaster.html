@@ -4,31 +4,39 @@
 		<link rel="stylesheet" type="text/css" href="taskMaster.css"/>
 	</head>
 	<body>
+		<div id='selector' class='selector'>
+			Who are you?<br/>
+			<button id='Isaiah' class='kidButton' onclick='selectKid(this)'>Isaiah</button>
+			<button id='Caleb' class='kidButton' onclick='selectKid(this)'>Caleb</button>
+			<button id='Other' class='kidButton' onclick='selectKid(this)'>Someone Else</button>
+		</div>
 		<div id='stuffHere'>
 		</div>
-		<div style='float:right;'>
-			<div id='timer' class='timer'>01:00</div>
-			<button id='start' class='timerBtn' onclick='startTimer()'>Start</button>
-			<button id='pause' class='timerBtn' onclick='pauseTimer()'>Pause</button>
-			<br/>
-			<label for='numTimer' >Timer (in minutes):</label>
-			<input id='numTimer' type='number' min='1' max='60' value='1'>
-		</div>
-		<div class='bottomPart'>
-			<div class='looper'>
-				<label for='chkLoop'>Loop</label>
-				<input id='chkLoop' type='checkbox' onchange='chkChange(this)'><br/>
-				<label for='numDelay' >Delay (in seconds):</label>
-				<input id='numDelay' type='number' min='0' max='60' value='1'>
+		<div id='bottomPart' class='hide'>
+			<div style='float:right;'>
+				<div id='timer' class='timer'>01:00</div>
+				<button id='start' class='timerBtn' onclick='startTimer()'>Start</button>
+				<button id='pause' class='timerBtn' onclick='pauseTimer()'>Pause</button>
+				<br/>
+				<label for='numTimer' >Timer (in minutes):</label>
+				<input id='numTimer' type='number' min='1' max='60' value='1'>
+			</div>
+			<div class='bottomPart'>
+				<div class='looper'>
+					<label for='chkLoop'>Loop</label>
+					<input id='chkLoop' type='checkbox' onchange='chkChange(this)'><br/>
+					<label for='numDelay' >Delay (in seconds):</label>
+					<input id='numDelay' type='number' min='0' max='60' value='1'>
+				</div>
+				<div>
+					<button id='reminder' class='reminderBtn' onclick='remind()'>Remind</button>
+					<div id='remindersTable'></div>
+				</div>
 			</div>
 			<div>
-				<button id='reminder' class='reminderBtn' onclick='remind()'>Remind</button>
-				<div id='remindersTable'></div>
+				<h3>Thanks</h3>
+				Audio generated from: <a href='https://freetts.com/'>https://freetts.com/</a>
 			</div>
-		</div>
-		<div>
-			<h3>Thanks</h3>
-			Audio generated from: <a href='https://freetts.com/'>https://freetts.com/</a>
 		</div>
 		<script src="taskMaster.js"></script>
 	</body>
