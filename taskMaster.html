@@ -14,11 +14,17 @@
 			<label for='numTimer' >Timer (in minutes):</label>
 			<input id='numTimer' type='number' min='1' max='60' value='1'>
 		</div>
-		<div>
-			<label for='chkLoop'>Loop</label>
-			<input id='chkLoop' type='checkbox' onchange='chkChange(this)'><br/>
-			<label for='numDelay' >Delay (in seconds):</label>
-			<input id='numDelay' type='number' min='0' max='60' value='1'>
+		<div class='bottomPart'>
+			<div class='looper'>
+				<label for='chkLoop'>Loop</label>
+				<input id='chkLoop' type='checkbox' onchange='chkChange(this)'><br/>
+				<label for='numDelay' >Delay (in seconds):</label>
+				<input id='numDelay' type='number' min='0' max='60' value='1'>
+			</div>
+			<div>
+				<button id='reminder' class='reminderBtn' onclick='remind()'>Remind</button>
+				<div id='remindersTable'></div>
+			</div>
 		</div>
 		<div>
 			<h3>Thanks</h3>

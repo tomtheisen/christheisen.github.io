@@ -24,7 +24,7 @@ const ended = (btn) => {
 		btn.classList.remove('playing');
 		btn.classList.add('played');
 	}
-
+	
 	
 	const delay = document.getElementById('numDelay').value * 1000;
 	if(loop){ 
@@ -33,10 +33,161 @@ const ended = (btn) => {
 }
 
 const stuff = {
-	Misc:['awesome'],
-	Morning:['wake', 'breakfast', 'milk', 'medicine', 'teeth', 'dress', 'hamper', 'bed', 'potty', 'shoes', 'done'],
-	Evening:['undress', 'bathe', 'pjs', 'milk', 'medicine', 'teeth', 'hamper', 'sleep', 'done']
+	Misc:[
+		{
+			name:'clean',
+			text:'Clean Up!',
+			reminders: 0
+		}
+	],
+	Morning:[
+		{
+			name:'wake',
+			text:'Wake Up!',
+			reminders: 0
+		}, 
+		{
+			name:'breakfast',
+			text:'Eat Up!',
+			reminders: 0
+		},
+		{
+			name: 'milk',
+			text:'Drink Up!',
+			reminders: 0
+		}, 
+		{
+			name:'medicine',
+			text:'Medicine Time!',
+			reminders: 0
+		}, 
+		{
+			name:'teeth',
+			text:'Brush Your Teeth!',
+			reminders: 0
+		}, 
+		{
+			name:'dress',
+			text:'Clothes On!',
+			reminders: 0
+		}, 
+		{
+			name:'hamper',
+			text:'Clothes in Hamper!',
+			reminders: 0
+		}, 
+		{
+			name:'bed',
+			text:'Make Your Bed!',
+			reminders: 0
+		},
+		{
+			name:'potty',
+			text:'Potty Time!',
+			reminders: 0
+		}, 
+		{
+			name:'shoes',
+			text:'Shoes On!',
+			reminders: 0
+		}, 
+		{
+			name:'done',
+			text:'Good Work!',
+			reminders: 0
+		}
+	],
+	Evening:[
+		{
+			name:'undress',
+			text:'Clothes Off!',
+			reminders: 0
+		}, 
+		{
+			name:'bathe',
+			text:'Bath Time!',
+			reminders: 0
+		}, 
+		{
+			name:'pjs',
+			text:'Pajamas On!',
+			reminders: 0
+		}, 
+		{
+			name:'milk',
+			text:'Drink Up!',
+			reminders: 0
+		}, 
+		{
+			name:'medicine',
+			text:'Medicine Time!',
+			reminders: 0
+		}, 
+		{
+			name:'teeth',
+			text:'Brush Your Teeth!',
+			reminders: 0
+		}, 
+		{
+			name:'hamper',
+			text:'Clothes in Hamper!',
+			reminders: 0
+		}, 
+		{
+			name:'sleep',
+			text:'Bed Time!',
+			reminders: 0
+		}, 
+		{
+			name:'done',
+			text:'Good Work!',
+			reminders: 0
+		}]
 };
+
+const remind = () => {
+	if(!lastPlayed?.id?.includes('_')){return;}
+	
+	const group = lastPlayed.id.split('_')[0];
+	const name = lastPlayed.id.split('_')[1];
+	
+	stuff[group].filter(x => x.name === name)[0].reminders++;
+	
+	updateReminderDisplay(group, name);
+}
+const updateReminderDisplay = (group, name) => {
+	const id = `${group}_${name}_reminders`;
+	const reminders = document.getElementById(id);
+	const activityData = stuff[group].filter(x => x.name === name)[0];
+	
+	if(reminders){
+		reminders.textContent = activityData.reminders;
+	}
+	else{
+		
+	
+		const table = document.getElementById('remindersTable');
+		const row = document.createElement('div');
+		const label = document.createElement('div');
+		const datum = document.createElement('div');
+		
+		row.id = `${group}_${name}_row`;
+		label.id = `${group}_${name}_name`;
+		datum.id = id;
+		
+		row.classList.add('reminderRow');
+		label.classList.add('reminderLabel');
+		
+		label.textContent = `${group}: ${activityData.text}`;
+		datum.textContent = stuff[group].filter(x => x.name === name)[0].reminders;
+		
+		row.appendChild(label);
+		row.appendChild(datum);
+		
+		table.appendChild(row);
+	}
+}
+	
 
 const toggleGroup = (input) => {
 	const buckets = document.getElementsByClassName('buttonBucket');
@@ -49,14 +200,14 @@ const toggleGroup = (input) => {
 const makeButton = (root, group, names) => {
 	names.forEach(x => {
 		const btn = document.createElement('button');
-		btn.id=`${group}_${x}`;
-		btn.textContent = x;
+		btn.id=`${group}_${x.name}`;
+		btn.textContent = x.text;
 		btn.addEventListener('click', () => play(btn));
 		btn.classList.add('unplayed');
 		btn.classList.add('activity');
 		root.appendChild(btn);
-	
-		audio[btn.id] = new Audio(`.\\audio\\${x}.mp3`);
+		
+		audio[btn.id] = new Audio(`.\\audio\\${x.name}.mp3`);
 		audio[btn.id].addEventListener('ended', () => ended(btn));
 		audio[btn.id].addEventListener('error', () => play('fileNotFound'));
 	});
@@ -67,7 +218,7 @@ const init = () => {
 		const div = document.createElement('div');
 		const h1 = document.createElement('h1');
 		const btns = document.createElement('div');
-
+		
 		div.id = x;
 		h1.addEventListener('click', () => toggleGroup(btns));
 		h1.textContent = x;
@@ -89,7 +240,7 @@ const play = (btn) => {
 	if(timeout){
 		clearTimeout(timeout);
 	}
-
+	
 	if(!btn || !audio[btn.id]){
 		console.log(audio);
 		audio.fileNotFound.play();
@@ -123,7 +274,7 @@ const startTimer = (input) => {
 	if(intervalID){
 		clearInterval(intervalID);
 	};
-
+	
 	time = document.getElementById('numTimer').value * 60;
 	const clock = document.getElementById('timer');
 	renderTimer(clock);
@@ -146,9 +297,9 @@ const pauseTimer = () => {
 const renderTimer = (clock) => {
 	const minutes = parseInt(time / 60, 10).toString().padStart(2, '0');
 	const seconds = parseInt(time % 60, 10).toString().padStart(2, '0');
-
+	
 	clock.textContent = `${minutes}:${seconds}`;
-
+	
 	if (--time < 0) {
 		clearInterval(intervalID);
 	}

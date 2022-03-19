@@ -32,7 +32,7 @@ h1{
 	
 	padding: 5px;
 	margin: 5px;
-	width: 7%;
+	width: 9%;
 	font-size: 8pt;
 }
 
@@ -51,4 +51,33 @@ h1{
 .timer {
 	font-size: 48pt;
 	
+}
+
+.looper {
+	width: 30%;
+}
+
+.bottomPart {
+	display:flex;
+	margin: 10px 5px;
+	min-height: 400px;
+}
+
+.reminderBtn {
+	margin: 5px auto;
+	width: 350px;
+	font-size: 18pt;
+}
+
+.reminderRow {
+	display:flex;
+	border-bottom:1px solid #999;
+}
+
+.reminderRow:nth-of-type(even) {
+	background-color: #CCC;
+}
+
+.reminderLabel{
+	width: 250px;
 }
