@@ -17,7 +17,7 @@ h1{
 .kidButton {
 	padding: 5px;
 	margin: 5px 0;
-	width: 20%;
+	min-width: 28%;
 	font-size: 36pt;
 	cursor: pointer;
 }
