@@ -1,8 +1,17 @@
+body{
+	font-family: sans-serif;
+}
 h1{
 	cursor: pointer;
 	border: solid 1px #000;
-	font-family: sans-serif;
 	text-align: center;
+}
+
+input {
+	font-size: 24pt;
+}
+label {
+	font-size: 24pt;
 }
 
 .selector{
