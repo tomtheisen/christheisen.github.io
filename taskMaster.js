@@ -43,15 +43,23 @@ const ended = (btn) => {
 }
 
 let stuff = {};
-const Isaiah = {
-	Misc:[
+const Other = {
+		Misc:[
 		{
 			name:'clean',
 			text:'Clean Up!',
 			reminders: 0,
 			time: 5
+		},
+		{
+			name:'shoes',
+			text:'Shoes On!',
+			reminders: 0,
+			time: 5
 		}
-	],
+	]
+}
+const Isaiah = {
 	Morning:[
 		{
 			name:'wake',
@@ -176,6 +184,36 @@ const Isaiah = {
 			time: 0
 		}]
 };
+const Caleb = {
+	Morning:[
+		{
+			name:'wake',
+			text:'Wake Up!',
+			reminders: 0,
+			time: 5
+		},
+		{
+			name:'undress',
+			text:'Pajamas Off!',
+			reminders: 0,
+			time: 5
+		},
+		{
+			name:'dress',
+			text:'Clothes On!',
+			reminders: 0,
+			time: 10
+		},
+		{
+			name:'done',
+			text:'Good Work!',
+			reminders: 0,
+			time: 5
+		}, 
+
+	]
+
+}
 
 const loadData = (input) => {
 	const root = document.getElementById('stuffHere');
@@ -210,10 +248,10 @@ const selectKid = (btn) => {
 			loadData(Isaiah);
 			break;
 		case 'Caleb':
-			alert("Sorry, I don't have any tasks for you");
+			loadData(Caleb);
 			break;
 		default:
-			alert("Sorry, I don't have any tasks for you");
+			loadData(Other);
 			break;
 	}
 }
