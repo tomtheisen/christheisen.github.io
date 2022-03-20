@@ -38,9 +38,10 @@ label {
 }
 
 .buttonBucket .activity {
-	padding: 5px;
-	margin: 5px 0;
-	width: 100%;
+	padding: 0px;
+	border: 0;
+	margin: 2px auto;
+	width: 40%;
 	font-size: 36pt;
 	cursor: pointer;
 }
@@ -48,8 +49,9 @@ label {
 .buttonBucket {
 	list-style-type: none;
 	background-color: #999;
-	max-height: 400px;
+	max-height: 300px;
 	overflow: hidden;
+	text-align: center;
 }
 
 .buttonBucket .activity.played {
@@ -59,16 +61,18 @@ label {
 	
 	padding: 5px;
 	margin: 5px;
-	width: 9%;
+	width: 8%;
 	font-size: 8pt;
 }
 
 .playing {
 	background-color: #FF7;
+	display: block;
 }
 
 .unplayed {
 	background-color: #F77;
+	display:block;
 }
 
 .timer {

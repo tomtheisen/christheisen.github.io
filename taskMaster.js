@@ -238,7 +238,6 @@ const loadData = (input) => {
 	}
 	
 	document.getElementById('selector').classList.add('hide');
-	document.getElementById('bottomPart').classList.remove('hide');
 	dataLoaded = true;
 }
 
@@ -267,15 +266,15 @@ const remind = () => {
 	
 	getActivity(lastPlayed.id).reminders++;
 	
-	updateReminderDisplay(group, name);
+	updateReminderDisplay();
 }
-const updateReminderDisplay = (group, name) => {
-	const id = `${group}_${name}_reminders`;
+const updateReminderDisplay = () => {
+	const id = `${lastPlayed.id}_reminders`;
 	const reminders = document.getElementById(id);
-	const activityData = stuff[group].filter(x => x.name === name)[0];
+	const activity = getActivity(lastPlayed.id);
 	
 	if(reminders){
-		reminders.textContent = activityData.reminders;
+		reminders.textContent = activity.reminders;
 	}
 	else{
 		const table = document.getElementById('remindersTable');
@@ -283,15 +282,15 @@ const updateReminderDisplay = (group, name) => {
 		const label = document.createElement('div');
 		const datum = document.createElement('div');
 		
-		row.id = `${group}_${name}_row`;
-		label.id = `${group}_${name}_name`;
+		row.id = `${lastPlayed.id}_row`;
+		label.id = `${lastPlayed.id}_name`;
 		datum.id = id;
 		
 		row.classList.add('reminderRow');
 		label.classList.add('reminderLabel');
 		
-		label.textContent = `${group}: ${activityData.text}`;
-		datum.textContent = stuff[group].filter(x => x.name === name)[0].reminders;
+		label.textContent = `${activityData.text}`;
+		datum.textContent = activity.reminders;
 		
 		row.appendChild(label);
 		row.appendChild(datum);
@@ -316,7 +315,7 @@ const toggleGroup = (input) => {
 	for(let x of groups){
 		x.classList.add('hide');
 	}
-	
+	document.getElementById('bottomPart').classList.remove('hide');
 }
 
 const makeButton = (root, group, names) => {
@@ -377,15 +376,19 @@ const play = (btn) => {
 	}
 }
 
-const startTimer = (input) => {
+const startTimer = () => {
 	if(intervalID){
 		clearInterval(intervalID);
 	};
 	
 	time = document.getElementById('numTimer').value * 60;
 	const clock = document.getElementById('timer');
-	renderTimer(clock);
+	if(time <= 0){ 
+		clock.textContent = '00:00';
+		return; 
+	}
 	
+	renderTimer(clock);
 	let magic = setInterval(() => renderTimer(clock), 1000);
 	intervalID = magic;// for some reason if I just set intervalID directly it doesn't work.
 }
