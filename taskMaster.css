@@ -5,6 +5,7 @@ h1{
 	cursor: pointer;
 	border: solid 1px #000;
 	text-align: center;
+	font-size: 48pt;
 }
 
 input {
@@ -47,7 +48,7 @@ label {
 .buttonBucket {
 	list-style-type: none;
 	background-color: #999;
-	max-height: 300px;
+	max-height: 400px;
 	overflow: hidden;
 }
 
@@ -71,8 +72,8 @@ label {
 }
 
 .timer {
-	font-size: 64pt;
-	
+	font-size: 72pt;
+	margin: 0 auto;
 }
 
 .looper {
@@ -85,10 +86,16 @@ label {
 	min-height: 400px;
 }
 
+.bottomPart div{
+	width: 33%;
+	text-align:center;
+}
+
 .reminderBtn {
 	margin: 5px auto;
 	width: 350px;
-	font-size: 18pt;
+	font-size: 24pt;
+	text-align: center;
 }
 
 .reminderRow {

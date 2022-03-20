@@ -226,6 +226,7 @@ const loadData = (input) => {
 		div.id = x;
 		h1.addEventListener('click', () => toggleGroup(btns));
 		h1.textContent = x;
+		h1.classList.add('groupTitle');
 		div.appendChild(h1);
 		btns.id = `bucket_${x}`;
 		btns.classList.add('hide');
@@ -278,8 +279,6 @@ const updateReminderDisplay = (group, name) => {
 		reminders.textContent = activityData.reminders;
 	}
 	else{
-		
-	
 		const table = document.getElementById('remindersTable');
 		const row = document.createElement('div');
 		const label = document.createElement('div');
@@ -313,6 +312,12 @@ const toggleGroup = (input) => {
 		x.classList.add('hide');
 	}
 	input.classList.remove('hide');
+	
+	const groups = document.getElementsByClassName('groupTitle');
+	for(let x of groups){
+		x.classList.add('hide');
+	}
+	
 }
 
 const makeButton = (root, group, names) => {

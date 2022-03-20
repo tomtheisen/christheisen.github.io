@@ -13,14 +13,6 @@
 		<div id='stuffHere'>
 		</div>
 		<div id='bottomPart' class='hide'>
-			<div style='float:right;'>
-				<div id='timer' class='timer'>01:00</div>
-				<button id='start' class='timerBtn' onclick='startTimer()'>Start</button>
-				<button id='pause' class='timerBtn' onclick='pauseTimer()'>Pause</button>
-				<br/>
-				<label for='numTimer' >Timer (in minutes):</label>
-				<input id='numTimer' type='number' min='1' max='60' value='1'>
-			</div>
 			<div class='bottomPart'>
 				<div class='looper'>
 					<label for='chkLoop'>Loop</label>
@@ -31,6 +23,14 @@
 				<div>
 					<button id='reminder' class='reminderBtn' onclick='remind()'>Remind</button>
 					<div id='remindersTable'></div>
+				</div>
+				<div>
+					<div id='timer' class='timer'>01:00</div>
+					<button id='start' class='timerBtn' onclick='startTimer()'>Start</button>
+					<button id='pause' class='timerBtn' onclick='pauseTimer()'>Pause</button>
+					<br/>
+					<label for='numTimer' >Timer (in minutes):</label>
+					<input id='numTimer' type='number' min='1' max='60' value='1'>
 				</div>
 			</div>
 			<div>
