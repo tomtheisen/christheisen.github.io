@@ -243,7 +243,6 @@ const loadData = (input) => {
 }
 
 const selectKid = (btn) => {
-	console.log(btn);
 	switch(btn.id){
 		case 'Isaiah':
 			loadData(Isaiah);
@@ -346,7 +345,6 @@ const play = (btn) => {
 	}
 	
 	if(!btn || !audio[btn.id]){
-		console.log(audio);
 		audio.fileNotFound.play();
 		return;
 	}
