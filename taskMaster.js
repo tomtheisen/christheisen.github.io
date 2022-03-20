@@ -133,13 +133,13 @@ const Isaiah = {
 			name:'undress',
 			text:'Clothes Off!',
 			reminders: 0,
-			time: 1
+			time: 2
 		}, 
 		{
 			name:'bathe',
 			text:'Bath Time!',
 			reminders: 0,
-			time: 5
+			time: 8
 		}, 
 		{
 			name:'pjs',
