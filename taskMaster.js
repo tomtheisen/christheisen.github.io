@@ -217,6 +217,12 @@ const Caleb = {
 			time: 5
 		},
 		{
+			name:'breakfast',
+			text:'Eat Up!',
+			reminders: 0,
+			time: 15
+		},
+		{
 			name:'unpajamas',
 			text:'Pajamas Off!',
 			reminders: 0,
