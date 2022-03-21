@@ -15,10 +15,15 @@ label {
 	font-size: 24pt;
 }
 
+.checkbox {
+	width: 30px;
+	height: 30px;
+}
+
 .selector{
 	padding: 5px;
 	margin: 5px 0;
-	width: 100%;
+	width: 95%;
 	font-size: 36pt;
 	font-family: sans-serif;
 	text-align:center;
@@ -38,9 +43,9 @@ label {
 }
 
 .buttonBucket .activity {
-	padding: 0px;
+	padding: 10px;
 	border: 0;
-	margin: 2px auto;
+	margin: 10px auto;
 	width: 40%;
 	font-size: 36pt;
 	cursor: pointer;
@@ -77,7 +82,6 @@ label {
 
 .timer {
 	font-size: 72pt;
-	margin: 0 auto;
 }
 
 .looper {
@@ -97,7 +101,7 @@ label {
 
 .reminderBtn {
 	margin: 5px auto;
-	width: 350px;
+	width: 95%;
 	font-size: 24pt;
 	text-align: center;
 }

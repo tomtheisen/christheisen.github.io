@@ -15,9 +15,9 @@
 		<div id='bottomPart' class='bottomPart hide'>
 			<div class='looper'>
 				<label for='chkLoop'>Loop Audio:</label>
-				<input id='chkLoop' type='checkbox' onchange='chkChange(this)'><br/>
+				<input id='chkLoop' class='checkbox' type='checkbox' onchange='chkChange(this)' checked><br/>
 				<label for='numDelay' >Delay (in seconds):</label>
-				<input id='numDelay' type='number' min='0' max='60' value='1'>
+				<input id='numDelay' type='number' min='0' max='60' value='10'>
 			</div>
 			<div>
 				<button id='reminder' class='reminderBtn' onclick='remind()'>Remind</button>
@@ -29,12 +29,11 @@
 				<button id='pause' class='timerBtn' onclick='pauseTimer()'>Pause</button>
 				<br/>
 				<label for='numTimer' >Timer (in minutes):</label>
-				<input id='numTimer' type='number' min='1' max='60' value='1'>
+				<input id='numTimer' type='number' min='1' max='99' value='1'>
 			</div>
-			<div style='position:absolute; bottom:0;text-align:left'>
-				<h3>Thanks</h3>
-				Audio generated from: <a href='https://freetts.com/'>https://freetts.com/</a>
-			</div>
+		</div>
+		<div id='reference' style='position:absolute; bottom:0;text-align:left'>
+			Audio generated from: <a href='https://freetts.com/'>https://freetts.com/</a>
 		</div>
 		<script src="taskMaster.js"></script>
 	</body>

@@ -56,6 +56,12 @@ const Other = {
 			text:'Shoes On!',
 			reminders: 0,
 			time: 5
+		},
+		{
+			name:'potty',
+			text:'Potty Time!',
+			reminders: 0,
+			time: 3
 		}
 	]
 }
@@ -65,7 +71,7 @@ const Isaiah = {
 			name:'wake',
 			text:'Wake Up!',
 			reminders: 0,
-			time: 5
+			time: 2
 		}, 
 		{
 			name:'breakfast',
@@ -77,20 +83,26 @@ const Isaiah = {
 			name: 'milk',
 			text:'Drink Up!',
 			reminders: 0,
-			time: 5
+			time: 7
 		}, 
 		{
 			name:'medicine',
 			text:'Medicine Time!',
 			reminders: 0,
-			time: 1
+			time: .5
 		}, 
 		{
 			name:'teeth',
 			text:'Brush Your Teeth!',
 			reminders: 0,
-			time: 2
+			time: 3
 		}, 
+		{
+			name:'unpajamas',
+			text:'Pajamas Off!',
+			reminders: 0,
+			time: 2
+		},
 		{
 			name:'dress',
 			text:'Clothes On!',
@@ -119,7 +131,7 @@ const Isaiah = {
 			name:'shoes',
 			text:'Shoes On!',
 			reminders: 0,
-			time: 5
+			time: 3
 		}, 
 		{
 			name:'done',
@@ -142,10 +154,16 @@ const Isaiah = {
 			time: 8
 		}, 
 		{
+			name:'dry',
+			text:'Dry Yourself!',
+			reminders: 0,
+			time: 3
+		}, 
+		{
 			name:'pjs',
 			text:'Pajamas On!',
 			reminders: 0,
-			time: 5
+			time: 3
 		}, 
 		{
 			name:'milk',
@@ -157,19 +175,25 @@ const Isaiah = {
 			name:'medicine',
 			text:'Medicine Time!',
 			reminders: 0,
-			time: 1
+			time: .5
 		}, 
 		{
 			name:'teeth',
 			text:'Brush Your Teeth!',
 			reminders: 0,
-			time: 2
+			time: 3
 		}, 
 		{
 			name:'hamper',
 			text:'Clothes in Hamper!',
 			reminders: 0,
 			time: 1
+		}, 
+		{
+			name:'pick',
+			text:'Pick Clothes!',
+			reminders: 0,
+			time: 3
 		}, 
 		{
 			name:'sleep',
@@ -193,25 +217,103 @@ const Caleb = {
 			time: 5
 		},
 		{
-			name:'undress',
+			name:'unpajamas',
 			text:'Pajamas Off!',
 			reminders: 0,
-			time: 5
+			time: 3
 		},
 		{
-			name:'dress',
-			text:'Clothes On!',
+			name:'underwear',
+			text:'Underwear On!',
 			reminders: 0,
-			time: 10
+			time: 2
+		},
+		{
+			name:'shirt',
+			text:'Shirt On!',
+			reminders: 0,
+			time: 2
+		},
+		{
+			name:'long',
+			text:'Long Sleeves On!',
+			reminders: 0,
+			time: 3
+		},
+		{
+			name:'pants',
+			text:'Pants On!',
+			reminders: 0,
+			time: 2
+		},
+		{
+			name:'socks',
+			text:'Socks On!',
+			reminders: 0,
+			time: 2
 		},
 		{
 			name:'done',
 			text:'Good Work!',
 			reminders: 0,
 			time: 5
+		}
+	],
+	Evening:[
+		{
+			name:'undress',
+			text:'Clothes Off!',
+			reminders: 0,
+			time: 3
 		}, 
-
-	]
+		{
+			name:'bathe',
+			text:'Bath Time!',
+			reminders: 0,
+			time: 8
+		}, 
+		{
+			name:'dry',
+			text:'Dry Yourself!',
+			reminders: 0,
+			time: 3
+		}, 
+		{
+			name:'pjs',
+			text:'Pajamas On!',
+			reminders: 0,
+			time: 4
+		}, 
+		{
+			name:'milk',
+			text:'Drink Up!',
+			reminders: 0,
+			time: 5
+		}, 
+		{
+			name:'teeth',
+			text:'Brush Your Teeth!',
+			reminders: 0,
+			time: 3
+		}, 
+		{
+			name:'hamper',
+			text:'Clothes in Hamper!',
+			reminders: 0,
+			time: 1
+		}, 
+		{
+			name:'sleep',
+			text:'Bed Time!',
+			reminders: 0,
+			time: 1
+		}, 
+		{
+			name:'done',
+			text:'Good Work!',
+			reminders: 0,
+			time: 0
+		}]
 
 }
 
@@ -316,6 +418,7 @@ const toggleGroup = (input) => {
 		x.classList.add('hide');
 	}
 	document.getElementById('bottomPart').classList.remove('hide');
+	document.getElementById('reference').classList.add('hide');
 }
 
 const makeButton = (root, group, names) => {
