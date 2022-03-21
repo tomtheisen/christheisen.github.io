@@ -5,7 +5,7 @@ let time = null;
 let timeout = null;
 let isPlaying = false;
 let lastPlayed = null;
-let loop = false;
+let loop = true;
 let dataLoaded = false;
 const chkChange = (chk) => { loop = chk.checked; }
 
@@ -391,7 +391,7 @@ const updateReminderDisplay = () => {
 		row.classList.add('reminderRow');
 		label.classList.add('reminderLabel');
 		
-		label.textContent = `${activityData.text}`;
+		label.textContent = `${activity.text}`;
 		datum.textContent = activity.reminders;
 		
 		row.appendChild(label);

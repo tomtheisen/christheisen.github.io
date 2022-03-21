@@ -115,7 +115,15 @@ label {
 	background-color: #CCC;
 }
 
-.reminderLabel{
+#remindersTable {
+	margin: 0 auto;
+}
+#remindersTable .reminderRow {
+	width:100%;
+}
+
+
+#remindersTable .reminderRow .reminderLabel{
 	width: 250px;
 }
 
