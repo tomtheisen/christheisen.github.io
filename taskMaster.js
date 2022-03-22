@@ -1,5 +1,5 @@
 "use strict";
-
+let paused = false;
 let intervalID = null;
 let time = null;
 let timeout = null;
@@ -465,7 +465,7 @@ const play = (btn) => {
 		audio[btn.id].play();
 	}
 	
-	if(!intervalID){//no timer going, go a timer.
+	if(!intervalID && !paused){//no timer going, go a timer.
 		defaultTime(btn.id);
 	}
 	
@@ -505,11 +505,13 @@ const pauseTimer = () => {
 	if(intervalID){
 		clearInterval(intervalID);
 		intervalID=null;
+		paused = true;
 	}
 	else{
 		const clock = document.getElementById('timer');
 		let magic = setInterval(() => renderTimer(clock), 1000);
 		intervalID = magic;// for some reason if I just set intervalID directly it doesn't work.
+		paused = false;
 	}
 }
 

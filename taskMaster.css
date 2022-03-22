@@ -39,7 +39,8 @@ label {
 
 .timerBtn {
 	width: 45%;
-	font-size: 18pt;
+	font-size: 24pt;
+	padding: 15px;
 }
 
 .buttonBucket .activity {
