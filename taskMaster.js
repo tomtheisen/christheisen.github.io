@@ -52,6 +52,12 @@ const Other = {
 			time: 5
 		},
 		{
+			name:'dinner',
+			text:'Come to the Table!',
+			reminders: 0,
+			time: 1
+		},
+		{
 			name:'shoes',
 			text:'Shoes On!',
 			reminders: 0,
