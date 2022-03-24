@@ -7,13 +7,34 @@ let isPlaying = false;
 let lastPlayed = null;
 let loop = true;
 let dataLoaded = false;
+let kidName = null;
 const chkChange = (chk) => { loop = chk.checked; }
 
+const hello = new Audio('.\\audio\\hello.mp3');
+const morning = new Audio('.\\audio\\morning.mp3');
+const evening = new Audio('.\\audio\\evening.mp3');
 const awesome = new Audio('.\\audio\\awesome.mp3');
+
+awesome.addEventListener('ended', () => playName());
+hello.addEventListener('ended', () => playName());
+
 const playAwesome = (btn) => { 
 	awesome.play(); 
-	setTimeout(() => {isPlaying = false; play(btn);}, 1500); 
 }
+const playName = () => {
+	audio['Name'].play();
+}
+const playHello = () => {
+	hello.play();
+}
+const playMorning = () => {
+	morning.play();
+}
+const playEvening = () => {
+	evening.play();
+}
+
+
 const timeElapsed = new Audio('.\\audio\\timer.mp3');
 const playTimeElapsed = (btn) => { 
 	timeElapsed.play(); 
@@ -24,7 +45,7 @@ const playTimeElapsed = (btn) => {
 
 
 const audio = {
-	fileNotFound: new Audio('.\\audio\\fileNotFound.mp3')
+	fileNotFound: new Audio('.\\audio\\fileNotFound.mp3'),
 }
 
 const ended = (btn) => {
@@ -44,7 +65,7 @@ const ended = (btn) => {
 
 let stuff = {};
 const Other = {
-		Misc:[
+	Misc:[
 		{
 			name:'clean',
 			text:'Clean Up!',
@@ -326,7 +347,7 @@ const Caleb = {
 			reminders: 0,
 			time: 0
 		}]
-
+		
 }
 
 const loadData = (input) => {
@@ -357,16 +378,23 @@ const loadData = (input) => {
 
 const selectKid = (btn) => {
 	switch(btn.id){
-		case 'Isaiah':
+		case 'Isaiah': {
 			loadData(Isaiah);
 			break;
-		case 'Caleb':
+		}
+		case 'Caleb': {
 			loadData(Caleb);
 			break;
-		default:
+		}
+		default: {
 			loadData(Other);
-			break;
+			return;
+		}
 	}
+	kidName = btn.id;
+	audio['Name'] = new Audio(`.\\audio\\${kidName}.mp3`);
+	audio['Name'].addEventListener('ended', () => audio[lastPlayed.id].play());
+	playHello();
 }
 
 const getActivity = (id) => {
@@ -412,13 +440,25 @@ const updateReminderDisplay = () => {
 		table.appendChild(row);
 	}
 }
-	
+
 const defaultTime = (id) => {
 	document.getElementById('numTimer').value = getActivity(id).time;
 	startTimer();
 }
 
 const toggleGroup = (input) => {
+	switch(input.id){
+		case 'bucket_Morning': { 
+			playMorning();
+			break;
+		}
+		case 'bucket_Evening': {
+			playEvening;
+			break;
+		}
+		default: {break;}
+	}
+	
 	const buckets = document.getElementsByClassName('buttonBucket');
 	for(let x of buckets){
 		x.classList.add('hide');
@@ -452,6 +492,11 @@ const makeButton = (root, group, names) => {
 
 const play = (btn) => { 
 	if(isPlaying){return;}
+	console.log(btn, lastPlayed);
+	if(!btn){ 
+		if(!lastPlayed){return;}
+		btn = lastPlayed; 
+	}
 	if([...btn.classList].includes('played')){ return; }
 	
 	if(timeout){
@@ -468,7 +513,7 @@ const play = (btn) => {
 		playAwesome(btn);
 	}
 	else{
-		audio[btn.id].play();
+		audio['Name'].play();
 	}
 	
 	if(!intervalID && !paused){//no timer going, go a timer.
@@ -478,7 +523,7 @@ const play = (btn) => {
 	if(lastPlayed && lastPlayed !== btn){
 		//new activity, go a timer.
 		defaultTime(btn.id);
-	
+		
 		if(!btn.id.includes('Misc')){
 			lastPlayed.classList.remove('playing');
 			lastPlayed.classList.add('played');
