@@ -10,28 +10,14 @@ let dataLoaded = false;
 let kidName = null;
 const chkChange = (chk) => { loop = chk.checked; }
 
-const hello = new Audio('.\\audio\\hello.mp3');
-const morning = new Audio('.\\audio\\morning.mp3');
-const evening = new Audio('.\\audio\\evening.mp3');
-const awesome = new Audio('.\\audio\\awesome.mp3');
-
-awesome.addEventListener('ended', () => playName());
-hello.addEventListener('ended', () => playName());
-
 const playAwesome = (btn) => { 
-	awesome.play(); 
+	audio.awesome.play(); 
 }
 const playName = () => {
 	audio['Name'].play();
 }
 const playHello = () => {
-	hello.play();
-}
-const playMorning = () => {
-	morning.play();
-}
-const playEvening = () => {
-	evening.play();
+	audio.hello.play();
 }
 
 
@@ -46,7 +32,16 @@ const playTimeElapsed = (btn) => {
 
 const audio = {
 	fileNotFound: new Audio('.\\audio\\fileNotFound.mp3'),
+	awesome: new Audio('.\\audio\\awesome.mp3'),
+	hello: new Audio('.\\audio\\hello.mp3'),
+	greetings: {
+		Morning: new Audio('.\\audio\\morning.mp3'),
+		Afternoon: new Audio('.\\audio\\afternoon.mp3'),
+		Evening: new Audio('.\\audio\\evening.mp3')
+	}
 }
+audio.awesome.addEventListener('ended', () => playName());
+audio.hello.addEventListener('ended', () => playName());
 
 const ended = (btn) => {
 	isPlaying = false;
@@ -166,6 +161,27 @@ const Isaiah = {
 			reminders: 0,
 			time: 0
 		}
+	],
+	Afternoon:[
+		{
+			name:'snack',
+			text:'Eat Up!',
+			reminders: 0,
+			time: 10
+		}, 
+		{
+			name:'water',
+			text:'Drink Up!',
+			reminders: 0,
+			time: 5
+		}, 
+		{
+			name:'done',
+			text:'Good Work!',
+			reminders: 0,
+			time: 0
+		}
+		
 	],
 	Evening:[
 		{
@@ -393,7 +409,7 @@ const selectKid = (btn) => {
 	}
 	kidName = btn.id;
 	audio['Name'] = new Audio(`.\\audio\\${kidName}.mp3`);
-	audio['Name'].addEventListener('ended', () => audio[lastPlayed.id].play());
+	audio['Name'].addEventListener('ended', () => {if(lastPlayed){audio[lastPlayed.id].play();}});
 	playHello();
 }
 
@@ -447,17 +463,8 @@ const defaultTime = (id) => {
 }
 
 const toggleGroup = (input) => {
-	switch(input.id){
-		case 'bucket_Morning': { 
-			playMorning();
-			break;
-		}
-		case 'bucket_Evening': {
-			playEvening;
-			break;
-		}
-		default: {break;}
-	}
+	const bName = input.id.replace('bucket_', '');
+	audio.greetings[bName].play();
 	
 	const buckets = document.getElementsByClassName('buttonBucket');
 	for(let x of buckets){
