@@ -1,0 +1,134 @@
+body{
+	font-family: sans-serif;
+}
+h1{
+	cursor: pointer;
+	border: solid 1px #000;
+	text-align: center;
+	font-size: 48pt;
+}
+
+input {
+	font-size: 24pt;
+}
+label {
+	font-size: 24pt;
+}
+
+.checkbox {
+	width: 30px;
+	height: 30px;
+}
+
+.selector{
+	padding: 5px;
+	margin: 5px 0;
+	width: 95%;
+	font-size: 36pt;
+	font-family: sans-serif;
+	text-align:center;
+}
+
+.kidButton {
+	padding: 5px;
+	margin: 5px 0;
+	min-width: 28%;
+	font-size: 36pt;
+	cursor: pointer;
+}
+
+.timerBtn {
+	width: 45%;
+	font-size: 24pt;
+	padding: 15px;
+}
+
+.buttonBucket .activity {
+	padding: 10px;
+	border: 0;
+	margin: 10px auto;
+	width: 40%;
+	font-size: 36pt;
+	cursor: pointer;
+}
+
+.buttonBucket {
+	list-style-type: none;
+	background-color: #999;
+	max-height: 300px;
+	overflow: hidden;
+	text-align: center;
+}
+
+.buttonBucket .activity.played {
+	background-color: #7F7;
+	cursor: not-allowed;
+	display: inline;
+	
+	padding: 5px;
+	margin: 5px;
+	width: 8%;
+	font-size: 8pt;
+}
+
+.playing {
+	background-color: #FF7;
+	display: block;
+}
+
+.unplayed {
+	background-color: #F77;
+	display:block;
+}
+
+.timer {
+	font-size: 72pt;
+}
+
+.looper {
+	width: 30%;
+}
+
+.bottomPart {
+	display:flex;
+	margin: 10px 5px;
+	min-height: 400px;
+}
+
+.bottomPart div{
+	width: 33%;
+	text-align:center;
+}
+
+.reminderBtn {
+	margin: 5px auto;
+	width: 95%;
+	font-size: 24pt;
+	text-align: center;
+}
+
+.reminderRow {
+	display:flex;
+	border-bottom:1px solid #999;
+}
+
+.reminderRow:nth-of-type(even) {
+	background-color: #CCC;
+}
+
+#remindersTable {
+	margin: 0 auto;
+}
+#remindersTable .reminderRow {
+	width:100%;
+}
+
+
+#remindersTable .reminderRow .reminderLabel{
+	width: 250px;
+}
+
+.hide {
+	display: none;
+}
+
