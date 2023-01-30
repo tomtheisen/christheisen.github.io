@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+		<title>QM</title>
+		<noscript>
+			<div class="badBroser">
+				<p>
+					This game uses javascript, you will need a modern browser with javascript enabled to continue.
+				</p>
+			</div>
+		</noscript>
+		<style>
+			.equation{
+				font-size: 72pt;
+			}
+			
+			input[type="number"]
+			{
+				font-size: 72pt;
+				width: 200px;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="fireworks"></canvas>
+		<div class="equation">
+			<label id="equation">1+1</label>
+		</div>
+		<hr/>
+		<div class="answer">
+			<input type="number" id="answer" />
+		</div>
+		<div>
+			<label id="difficulty">0</label>
+			<progress id="progress" max="10" value="5";></progress>
+		</div>
+		<script src="f.js"></script>
+		<script src="a.js"></script>
+	</body>
+</html>
