@@ -89,10 +89,13 @@ function checkAnswer(){
 	const x = Number(ans.value);
 	if(x===c){
 		score++;
+		eq.classList.remove('wrong');
 		launchFirework(2);
+		generateEquation();
 	}
 	else{
 		score--;
+		eq.classList.add('wrong');
 	}
 	while(score > 5 && difficulty < 8){
 		score-=5;
@@ -105,7 +108,6 @@ function checkAnswer(){
 	}
 	prog.value = score+5;
 	lvl.textContent=difficulty;
-	generateEquation();
 	ans.value = '';
 	ans.focus();
 }
