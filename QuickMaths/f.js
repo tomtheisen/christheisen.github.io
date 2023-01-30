@@ -121,7 +121,7 @@ firework.prototype.Move = function(){
 firework.prototype.Explode = function(){
 	//make the particles.
 	this.exploded = 1;
-	const particles = Math.random()*12+20;
+	const particles = Math.random()*12+12;
 	for(let i=0;i<particles;i++){
 		this.fragments.push(new fragment(this.location.x, this.location.y, this.hue));
 	}
@@ -138,7 +138,7 @@ function fragment(x,y,hue){
 	this.hue = hue+(Math.floor(Math.random()*100)-50);
 	this.sat = 50;
 	this.trail = [];
-	this.age = 100 + Math.random()*50;
+	this.age = 75 + Math.random()*50;
 }
 
 fragment.prototype.Draw = function(){

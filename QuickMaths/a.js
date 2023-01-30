@@ -89,7 +89,7 @@ function checkAnswer(){
 	const x = Number(ans.value);
 	if(x===c){
 		score++;
-		launchFirework(3);
+		launchFirework(2);
 	}
 	else{
 		score--;
@@ -97,7 +97,7 @@ function checkAnswer(){
 	while(score > 5 && difficulty < 8){
 		score-=5;
 		difficulty++;
-		launchFirework(10);
+		launchFirework(6);
 	}
 	while(score < -5 && difficulty > 0){
 		score+=5;
