@@ -13,6 +13,9 @@ const fw = [];
 let W = 10;
 let H = 10;
 let AF = 0;
+let encourageTimer = 0;
+let encouragementHue = 0;
+
 function point(x, y){ this.x = x||0; this.y = y||0; }
 point.prototype.plus = function(addend){
 	const x = addend?.x || 0;
@@ -34,11 +37,16 @@ function manageFireworks(){
 	ctx.clearRect(0,0,W,H);
 	if(!fw.length){
 		AF=0;
+		document.getElementById('content').classList.remove('hide');
 		return;
 	}
 	AF = requestAnimationFrame(manageFireworks);
 	
-	for(let i=0;i<fw.length;i++){
+	if(encourageTimer>0){
+		encourage();
+	}
+
+for(let i=0;i<fw.length;i++){
 		fw[i].Move();
 		fw[i].Draw();
 		if(fw[i].Done()){
@@ -48,6 +56,39 @@ function manageFireworks(){
 	}
 }
 
+function showEncourage(duration){
+	encouragementHue = Math.floor(Math.random() * 360);
+	encourageTimer = duration;
+}
+
+function encourage(){
+	encourageTimer--;
+	console.log(encourageTimer);
+	if(encourageTimer < 3){
+		document.getElementById('content').classList.remove('hide');
+	}
+	
+	const text = "Next Level!";
+	let px = 300;
+	let width = 0;
+	
+	if(encourageTimer % 25 === 0){
+		encouragementHue = Math.floor(Math.random() * 360);
+	}
+	ctx.beginPath();
+	ctx.fillStyle = `hsl(${encouragementHue},50%,50%,100%)`;
+	ctx.font = `${px}px sans-serif`;
+	
+	do{
+		px--;
+		width = ctx.measureText(text).width;
+	}
+	while(width > W)
+		
+	ctx.fillText(text, (W-width)/2, H/2);
+	ctx.closePath();
+	
+}
 function launchFirework(count=1){
 	for(let i=0;i<count;i++){
 		fw.push(new firework());
@@ -158,7 +199,7 @@ fragment.prototype.Move = function(){
 	this.velocity.y -= G;
 	this.trail.unshift(this.location);
 	this.age--;
-	while(this.trail.length > 15){
+	while(this.trail.length > 10){
 		this.trail.pop();
 	}
 }
@@ -171,10 +212,6 @@ function initFireworks(){
 	F.style.height = h;
 	F.width = w;
 	F.height = h;
-	
-	F.style.position = 'absolute';
-	F.style.inset = 0;
-	F.style.border = 'none';
 	
 	H = h;
 	W = w;

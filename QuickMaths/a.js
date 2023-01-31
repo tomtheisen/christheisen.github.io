@@ -1,36 +1,43 @@
 'use strict';
 
-//group math facts
+//group math facts?
 	//2+3=5 >next equation> 5-3=2
+	//Doesn't work within a level because each level has different ranges
 
 //math levels based on: https://mathfactsmatter.com/the-7-levels-of-math-fact-fluency/#
 //A min/max is the sum
-	//sum = rand min-max
-	//addend = 0-sum
-	//calculate other addend
+//sum = rand min-max
+//addend = 0-sum
+//calculate other addend
 //S min/max is the minuend
-	//minuend = rand min-max
-	//subtrahend = rand 0-minuend
-	//calculate difference
+//minuend = rand min-max
+//subtrahend = rand 0-minuend
+//calculate difference
 //M min/max is the max of the two multiplicands; other multiplicand is 0-10
-	//temp = rand min-max
-	//rand 0/1 for a or b
-	//other multiplicand = rand 0-10
-	//calculate product
+//temp = rand min-max
+//rand 0/1 for a or b
+//other multiplicand = rand 0-10
+//calculate product
 //D min/max is the max of the divisor and quotient
-	//temp = rand min-max
-	//rand 0/1 for divisor or quotient
-	//other (divisor or quotient) = rand 0-10
-	//calculate dividend
-	
+//temp = rand min-max
+//rand 0/1 for divisor or quotient
+//other (divisor or quotient) = rand 0-10
+//calculate dividend
+
 let difficulty = 0;
 let score = 0;
-let a=0,b=0,c=0,s='+';
+let current = null;
+let lvlDone = 0;
+
+const eqs = [];
+const missed = [];
 const eq = document.getElementById('equation');
 const ans = document.getElementById('answer');
 const lvl = document.getElementById('difficulty');
 const prog = document.getElementById('progress');
-	
+const rem = document.getElementById('remaining');
+const content = document.getElementById('content');
+
 const levels = [
 	{//0: purple
 		A:{min:0, max:5}
@@ -87,27 +94,45 @@ function pickOne(array){
 }
 function checkAnswer(){
 	const x = Number(ans.value);
-	if(x===c){
-		score++;
+	if(x===current.c){
 		eq.classList.remove('wrong');
 		launchFirework(2);
-		generateEquation();
+		updateEquation();
+		score += lvlDone*.5;
+		score = Math.min(score, 6);
 	}
 	else{
-		score--;
+		score -= lvlDone;
 		eq.classList.add('wrong');
+		score = Math.max(score, -6);
+		if(!lvlDone){
+			missed.push({s:current.s, a:current.a, b:current.b, c:current.c});
+		}
 	}
+	
 	while(score > 5 && difficulty < 8){
-		score-=5;
+		score-=7;
 		difficulty++;
-		launchFirework(6);
+		lvl.value=difficulty+'';
+		generateLevelEquations();
+
+		content.classList.add('hide');
+		launchFirework(3);
+		showEncourage(300);
+		
+		setTimeout(()=> {launchFirework(3);}, 1000);
+		setTimeout(()=> {launchFirework(3);}, 2000);
+		setTimeout(()=> {launchFirework(3);}, 3000);
+		setTimeout(()=> {launchFirework(3);}, 4000);
+		
 	}
 	while(score < -5 && difficulty > 0){
 		score+=5;
 		difficulty--;
+		lvl.value=difficulty+'';
+		generateLevelEquations();
 	}
 	prog.value = score+5;
-	lvl.textContent=difficulty;
 	ans.value = '';
 	ans.focus();
 }
@@ -130,64 +155,151 @@ function randomInt(min, max){
 	return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function generateEquation(){
+function buildA(min, max){
+	const sum = randomInt(min, max);
+	const addA = randomInt(min, sum);
+	const addB = sum-addA;
+	return {s:'+', a:addA, b:addB, c:sum};
+}
+function buildS(min, max){
+	const minuend = randomInt(min, max);
+	const subtrahend = randomInt(min, minuend);
+	const difference = minuend-subtrahend;
+	return {s:'-', a:minuend, b:subtrahend, c:difference};
+}
+function buildM(min, max){
+	const temp = randomInt(min, max);
+	const aorb = randomInt(0,1);
+	const multiplicandA = aorb === 0 ? temp : randomInt(0,10);
+	const multiplicandB = aorb === 0 ? randomInt(0,10) : temp;
+	const product = multiplicandA * multiplicandB;
+	return {s:'x', a:multiplicandA, b:multiplicandB, c:product};
+}
+function buildD(min, max){
+	const temp = randomInt(min, max);
+	const aorb = randomInt(0,1);
+	const quotient = aorb === 0 ? temp : randomInt(0,10);
+	const divisor = aorb === 0 ? randomInt(0,10) : temp;
+	const dividend = multiplicandA * multiplicandB;
+	return {s:'÷', a:dividend, b:divisor, c:quotient};
+}
+
+function updateEquation(){
+	
+	if(!eqs.length){
+		if(missed.length){
+			while(missed.length){eqs.push(missed.pop());}
+		}
+		else{
+			lvlDone=1;
+			generateRandomEquation();
+		}
+	}
+	current = eqs.pop();
+	equation.textContent = `${current.a}${current.s}${current.b}`;
+	
+	if(lvlDone){
+		rem.parentNode.classList.add('hide');
+		prog.classList.remove('hide');
+	}
+	else{
+		rem.textContent = eqs.length + missed.length + 1;
+		rem.parentNode.classList.remove('hide');
+		prog.classList.add('hide');
+	}
+
+}
+function generateRandomEquation(){
 	const key = pickAKey(levels[difficulty]);
 	const min = levels[difficulty][key].min;
 	const max = levels[difficulty][key].max;
 	
 	switch(key){
 		case 'A':{
-			s = '+';
-			c = randomInt(min, max);
-			a = randomInt(min, c);
-			b = c-a;
+			eqs.push(buildA(min, max));
 			break;
 		}
 		case 'S':{
-			s = '-';
-			a = randomInt(min, max);
-			b = randomInt(min, a);
-			c = a-b;
+			eqs.push(buildS(min, max));
 			break;
 		}
 		case 'M':{
-			s='x';
-			const temp = randomInt(min, max);
-			const aorb = randomInt(0,1);
-			if(aorb === 0){
-				a = temp;
-				b = randomInt(0,10);
-			}
-			else{
-				a = randomInt(0,10);
-				b = temp;
-			}
-			c = a*b;
+			eqs.push(buildM(min, max));
 			break;
 		}
 		case 'D':{
-			s='÷';
-			const temp = randomInt(min, max);
-			const aorb = randomInt(0,1);
-			if(aorb === 0){
-				b = Math.max(temp, 1);
-				c = randomInt(0,10);
-			}
-			else{
-				b = randomInt(1,10);
-				c = temp;
-			}
-			a = b*c;
+			eqs.push(buildD(min, max));
 			break;
 		}
 		default:{
-			//shouldn't happen.
+			eqs.push({s:'+', a:1, b:1, c:2});
 			break;
 		}
 	}
-	
-	equation.textContent = `${a}${s}${b}`;
 }
 
-generateEquation();
+function generateLevelEquations(){
+	difficulty = Number(lvl.value);
+	const keys = Object.keys(levels[difficulty]);
+	eqs.length = 0;
+	lvlDone = 0;
+	keys.forEach(
+		key => {
+			const min = levels[difficulty][key].min;
+			const max = levels[difficulty][key].max;
+			
+			switch(key){
+				case 'A':{
+					for(let sum=min;sum<=max;sum++){
+						for(let addend=min;addend<=sum;addend++){
+							eqs.push({s:'+', a:addend, b:sum-addend, c:sum});
+						}
+					}
+					break;
+				}
+				case 'S':{
+					for(let minuend=min;minuend<=max;minuend++){
+						for(let subtrahend=min;subtrahend<=minuend;subtrahend++){
+							eqs.push({s:'-', a:minuend, b:subtrahend, c:minuend-subtrahend});
+						}
+					}
+					break;
+				}
+				case 'M':{
+					for(let temp=min;temp<=max;temp++){
+						for(let multiplicand=0;multiplicand<=10;multiplicand++){
+							eqs.push({s:'x', a:temp, b:multiplicand, c:temp*multiplicand});
+							eqs.push({s:'x', a:multiplicand, b:temp, c:temp*multiplicand});
+						}
+					}
+					break;
+				}
+				case 'D':{
+					for(let i=min;i<=max;i++){
+						for(let j=0;j<=10;j++){
+							eqs.push({s:'÷', a:i*j, b:i, c:j});
+							eqs.push({s:'÷', a:i*j, b:j, c:i});
+						}
+					}
+					break;
+				}
+				default:{
+					eqs.push({s:'+', a:1, b:1, c:2});
+					break;
+				}
+			}
+		}
+	);
+	
+	for(let i=eqs.length;i;){
+		const r = Math.floor(Math.random() * i--);
+		const temp = eqs[i];
+		eqs[i] = eqs[r];
+		eqs[r] = temp;
+	}
+
+	updateEquation();
+}
+
+generateLevelEquations();
 ans.focus();
