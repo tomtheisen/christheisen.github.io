@@ -117,14 +117,11 @@ function checkAnswer(){
 		generateLevelEquations();
 
 		content.classList.add('hide');
-		launchFirework(3);
 		showEncourage(300);
 		
-		setTimeout(()=> {launchFirework(3);}, 1000);
-		setTimeout(()=> {launchFirework(3);}, 2000);
-		setTimeout(()=> {launchFirework(3);}, 3000);
-		setTimeout(()=> {launchFirework(3);}, 4000);
-		
+		for(let i=0;i<10;i++){
+			setTimeout(()=> {launchFirework(2);}, 500*i);
+		}
 	}
 	while(score < -5 && difficulty > 0){
 		score+=5;

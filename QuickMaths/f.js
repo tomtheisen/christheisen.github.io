@@ -63,13 +63,12 @@ function showEncourage(duration){
 
 function encourage(){
 	encourageTimer--;
-	console.log(encourageTimer);
 	if(encourageTimer < 3){
 		document.getElementById('content').classList.remove('hide');
 	}
 	
 	const text = "Next Level!";
-	let px = 300;
+	let px = Math.floor(W/6);
 	let width = 0;
 	
 	if(encourageTimer % 25 === 0){
@@ -77,10 +76,10 @@ function encourage(){
 	}
 	ctx.beginPath();
 	ctx.fillStyle = `hsl(${encouragementHue},50%,50%,100%)`;
-	ctx.font = `${px}px sans-serif`;
 	
 	do{
-		px--;
+		ctx.font = `${px}px sans-serif`;
+		px-=5;
 		width = ctx.measureText(text).width;
 	}
 	while(width > W)
