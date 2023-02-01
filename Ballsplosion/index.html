@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+    <script type="text/javascript">
+(
+function(){
+function ReDraw(){
+	context.canvas.width  = window.innerWidth-30;
+	context.canvas.height = window.innerHeight-30;
+	Height = context.canvas.height;
+	Width = context.canvas.width;
+	context.fillStyle="rgba(0,0,0,1)";
+	context.fillRect(0,0,Width,Height);
+	deltaMouseX=mouseX-lastMouseX;
+	deltaMouseY=mouseY-lastMouseY;
+	lastMouseX=mouseX;
+	lastMouseY=mouseY;
+	Duration--;
+	for(var Index=BallCount;Index--;)
+	{
+		var clickRange=0.4*Width;
+		var gravityRange=0.8*Width;
+		var pushRange=0.1*Width;
+		
+		var Ball=BallArray[Index];
+		var x=Ball.x,y=Ball.y,u=Ball.u,v=Ball.v;
+		var deltaX=x-mouseX,deltaY=y-mouseY;
+
+		var Distance=Math.sqrt(deltaX*deltaX+deltaY*deltaY)||0.001;
+		var deltaX=deltaX/Distance,deltaY=deltaY/Distance;
+		
+		/* click push */
+		if(PullPush&&Distance<clickRange){
+			var clickPower=0.003*(1-Distance/clickRange)*Width;
+			u=u+(deltaX*clickPower+0.5-Math.random());
+			v=v+(deltaY*clickPower+0.5-Math.random());
+		}
+		/* gravity */
+		if(Distance<gravityRange){
+			var gravityPower=0.001*(1-Distance/gravityRange)*Width;
+			u-=deltaX*gravityPower
+			v-=deltaY*gravityPower;
+		}
+		/* move push */
+		if(Distance<pushRange){
+			var pushPower=0.0002*(1-Distance/pushRange)*Width;
+			u+=deltaMouseX*pushPower;
+			v+=deltaMouseY*pushPower;
+		}
+		
+		u*=Friction;
+		v*=Friction;
+		
+		var speedX=Math.abs(u);
+		var speedY=Math.abs(v);
+		var speed=0.5*(speedX+speedY);
+		0.1>speedX&&(u*=3*Math.random());
+		0.1>speedY&&(v*=3*Math.random());
+		var size=0.45*speed;
+		size=Math.max(Math.min(size,4.0),.9);
+		x+=u;
+		y+=v;
+		x>Width?(x=Width,u*=-1):0>x&&(x=0,u*=-1);
+		y>Height?(y=Height,v*=-1):0>y&&(y=0,v*=-1);
+		Ball.u=u;
+		Ball.v=v;
+		Ball.x=x;
+		Ball.y=y;
+		context.fillStyle="rgb("+Ball.r+","+Ball.g+","+Ball.b+")";
+		context.beginPath();
+		context.arc(x,y,size,0,TwoPi,!0);
+		context.closePath();
+		context.fill();
+		
+		//uncomment to fade out after Duration frames.
+		//if(Duration < 0){
+		//	Ball.r=Math.floor(Ball.r*.95);
+		//	Ball.g=Math.floor(Ball.g*.95);
+		//	Ball.b=Math.floor(Ball.b*.95);
+		//}
+	}
+}
+function MouseMove(Index)
+{
+	Index=Index?Index:window.event;
+	mouseX=Index.clientX-mainCanvas.offsetLeft;
+	mouseY=Index.clientY-mainCanvas.offsetTop;
+}
+
+function MouseDown(){PullPush=1;}
+function MouseUp(){PullPush=0;}
+
+function Ball()
+{
+	
+	this.r=Math.floor(255*Math.random());
+	this.g=Math.floor(255*Math.random());
+	this.b=Math.floor(255*Math.random());
+	this.color="rgb("+this.r+","+this.g+","+this.b+")";
+	
+	this.u=this.v=0;
+	this.x=this.y=0;
+	this.size=1
+}
+	
+var mouseX, mouseY, lastMouseX, lastMouseY, deltaMouseX, deltaMouseY;
+var Height=560,Width=1E3;
+var BallArray=[],BallCount=600,PullPush,Friction=.96,TwoPi=2*Math.PI;
+var mainCanvas, context;
+var Duration=650;
+window.onload=function()
+{
+	mainCanvas=document.getElementById("mainCanvas");
+	if(mainCanvas.getContext){
+		context=mainCanvas.getContext("2d");
+		for(var Index=BallCount;Index--;)
+		{
+			var l=new Ball;
+			l.x=0.5*Width;
+			l.y=0.5*Height;
+			l.u=34*Math.cos(Index)*Math.random();
+			l.v=34*Math.sin(Index)*Math.random();
+			BallArray[Index]=l
+		}
+		mouseX=lastMouseX=0.5*Width;
+		mouseY=lastMouseY=0.5*Height;
+		document.onmousedown=MouseDown;
+		document.onmouseup=MouseUp;
+		document.onmousemove=MouseMove;
+		setInterval(ReDraw,25);
+	}
+	}
+		}
+)();
+
+</script>
+  </head>
+  <body>
+	<canvas id="mainCanvas"/>
+	</body>
+</html>
