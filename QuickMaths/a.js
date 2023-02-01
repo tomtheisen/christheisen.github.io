@@ -186,6 +186,8 @@ function buildD(min, max){
 	const m2 = Math.max(10, max);
 	const temp = randomInt(min, max);
 	const aorb = randomInt(0,1);
+	if(aorb){temp = Math.max(temp, 1);}//no 0 divisor
+	
 	const quotient = aorb === 0 ? temp : randomInt(0,m2);
 	const divisor = aorb === 0 ? randomInt(1,m2) : temp;
 	const dividend = divisor * quotient;
@@ -297,8 +299,10 @@ function generateLevelEquations(){
 					const m2 = Math.max(10, max);
 					for(let i=min;i<=max;i++){
 						for(let j=0;j<=m2;j++){
-							eqs.push({s:'÷', a:i*j, b:i, c:j});
-							if(j){
+							if(i){//no 0 divisor
+								eqs.push({s:'÷', a:i*j, b:i, c:j});
+							}
+							if(j){//no 0 divisor
 								eqs.push({s:'÷', a:i*j, b:j, c:i});
 							}
 						}
