@@ -1,43 +1,37 @@
 'use strict';
 
-//group math facts?
-	//2+3=5 >next equation> 5-3=2
-	//Doesn't work within a level because each level has different ranges
 
-//math levels based on: https://mathfactsmatter.com/the-7-levels-of-math-fact-fluency/#
-//A min/max is the sum
-//sum = rand min-max
-//addend = 0-sum
-//calculate other addend
-//S min/max is the minuend
-//minuend = rand min-max
-//subtrahend = rand 0-minuend
-//calculate difference
-//M min/max is the max of the two multiplicands; other multiplicand is 0-10
-//temp = rand min-max
-//rand 0/1 for a or b
-//other multiplicand = rand 0-10
-//calculate product
-//D min/max is the max of the divisor and quotient
-//temp = rand min-max
-//rand 0/1 for divisor or quotient
-//other (divisor or quotient) = rand 0-10
-//calculate dividend
+//practice
+	//do all equations from level
+	//don't show wrong/misses
+
+//quiz
+	//3 hearts
+	//lose a heart when you get one wrong
+	//fill progress bar
+	//get 10 right to pass
+
+//math levels mostly based on: https://mathfactsmatter.com/the-7-levels-of-math-fact-fluency/#
 
 let difficulty = 0;
 let score = 0;
 let current = null;
-let lvlDone = 0;
+let practiceDone = 0;
+let hearts = 3;
 
 const eqs = [];
 const missed = [];
+
+const wrapper = document.getElementById('wrapper');
 const eq = document.getElementById('equation');
 const ans = document.getElementById('answer');
 const lvl = document.getElementById('difficulty');
 const prog = document.getElementById('progress');
 const rem = document.getElementById('remaining');
-const mis = document.getElementById('missed');
-const content = document.getElementById('content');
+const quiz = document.getElementById('quiz');
+const heart = document.getElementById('hearts');
+const practice = document.getElementById('practice');
+const header = document.getElementById('header');
 
 const levels = [
 	{//0: purple
@@ -48,8 +42,8 @@ const levels = [
 		S:{min:0, max:5}
 	},
 	{//2: orange
-		A:{min:11, max:15},
-		S:{min:6, max:10}
+		A:{min:10, max:16},
+		S:{min:4, max:11}
 	},
 	{//3: yellow
 		A:{min:16, max:20},
@@ -57,30 +51,21 @@ const levels = [
 		M:{min:0, max:2}
 	},
 	{//4: green
-		A:{min:21, max:25},
 		S:{min:16, max:20},
 		M:{min:3, max:5},
 		D:{min:0, max:2}
 	},
 	{//5: light blue
-		A:{min:26, max:30},
-		S:{min:21, max:25},
-		M:{min:6, max:9},
+		M:{min:6, max:8},
 		D:{min:3, max:5}
 	},
 	{//6: dark blue
-		A:{min:31, max:35},
-		S:{min:26, max:30},
-		M:{min:10, max:12},
-		D:{min:6, max:9}
+		M:{min:9, max:12},
+		D:{min:6, max:8}
 	},
 	{//7: purple
-		A:{min:36, max:40},
-		S:{min:31, max:35},
-		M:{min:13, max:15},
-		D:{min:10, max:12}
+		D:{min:9, max:12}
 	}
-	
 ];
 
 function pickAKey(input){
@@ -93,56 +78,64 @@ function pickOne(array){
 	const option = array[index];
 	return option;
 }
-function checkAnswer(){
-	const x = Number(ans.value);
-	if(x===current.c){
-		eq.classList.remove('wrong');
-		launchFirework(4);
-		updateEquation();
-		score += lvlDone*.5;
-		score = Math.min(score, 6);
+
+function levelUp(){
+	difficulty = Math.min(7,difficulty+1);
+	lvl.value=difficulty+'';
+	generateLevelEquations();
+
+	wrapper.classList.add('hide');
+	showEncourage(300);
+	for(let i=0;i<10;i++){
+		setTimeout(()=> {launchFirework(2);}, 500*i);
+	}
+}
+function levelDown(){
+	difficulty = Math.max(0,difficulty-1);
+	lvl.value=difficulty+'';
+	generateLevelEquations();
+}
+function correct(){
+	launchFirework(4);
+	updateEquation();
+	score+=practiceDone;
+	prog.value = score-1;
+	if(practiceDone && score > 10){
+		levelUp();
+	}
+}
+function incorrect(){
+	eq.classList.add('wrong');
+	if(practiceDone){
+		hearts--;
+		heart.textContent = '♥'.repeat(hearts);
+		if(!hearts){
+			levelDown();
+		}
 	}
 	else{
-		score -= lvlDone;
-		eq.classList.add('wrong');
-		score = Math.max(score, -6);
-		if(!lvlDone){
-			missed.push({s:current.s, a:current.a, b:current.b, c:current.c});
-			mis.textContent = missed.length;
+		missed.push({s:current.s, a:current.a, b:current.b, c:current.c});
+		rem.textContent = eqs.length + missed.length + 1;
+	}	
+}
 
-			if(missed.length>5){
-				missed.length = 0;
-				difficulty--;
-				difficulty = Math.max(0,difficulty);
-				score = 0;
-				lvl.value=difficulty+'';
-				generateLevelEquations();				
-			}
-		}
+function checkAnswer(){
+	const x = Number(ans.value);
+	eq.classList.remove('wrong');
+
+	if(x===current.c){
+		correct();
+	}
+	else{
+		incorrect();
 	}
 	
-	while(score > 5 && difficulty < 8){
-		score-=7;
-		difficulty++;
-		difficulty = Math.min(7,difficulty);
-		lvl.value=difficulty+'';
-		generateLevelEquations();
-
-		content.classList.add('hide');
-		showEncourage(300);
-		
-		for(let i=0;i<10;i++){
-			setTimeout(()=> {launchFirework(2);}, 500*i);
-		}
+	while(false){
+		levelUp();
 	}
-	while(score < -5 && difficulty > 0){
-		score+=5;
-		difficulty--;
-		difficulty = Math.max(0,difficulty);
-		lvl.value=difficulty+'';
-		generateLevelEquations();
+	while(false){
+		levelDown();
 	}
-	prog.value = score+5;
 	ans.value = '';
 	ans.focus();
 }
@@ -153,9 +146,12 @@ ans.addEventListener('keydown', (e) => {
 		checkAnswer();
 		return;
 	}
-	if(!'0123456789'.includes(e.key) && !keys.includes(e.key)){
-		e.preventDefault();
-		return;
+	
+	if(!keys.includes(e.key)){
+		if(!'0123456789'.includes(e.key) || ans.value.length > 3){
+			e.preventDefault();
+			return;
+		}
 	}
 });
 
@@ -178,19 +174,21 @@ function buildS(min, max){
 	return {s:'-', a:minuend, b:subtrahend, c:difference};
 }
 function buildM(min, max){
+	const m2 = Math.max(10, max);
 	const temp = randomInt(min, max);
 	const aorb = randomInt(0,1);
-	const multiplicandA = aorb === 0 ? temp : randomInt(0,10);
-	const multiplicandB = aorb === 0 ? randomInt(0,10) : temp;
+	const multiplicandA = aorb === 0 ? temp : randomInt(0,m2);
+	const multiplicandB = aorb === 0 ? randomInt(0,m2) : temp;
 	const product = multiplicandA * multiplicandB;
 	return {s:'x', a:multiplicandA, b:multiplicandB, c:product};
 }
 function buildD(min, max){
+	const m2 = Math.max(10, max);
 	const temp = randomInt(min, max);
 	const aorb = randomInt(0,1);
-	const quotient = aorb === 0 ? temp : randomInt(0,10);
-	const divisor = aorb === 0 ? randomInt(0,10) : temp;
-	const dividend = multiplicandA * multiplicandB;
+	const quotient = aorb === 0 ? temp : randomInt(0,m2);
+	const divisor = aorb === 0 ? randomInt(1,m2) : temp;
+	const dividend = divisor * quotient;
 	return {s:'÷', a:dividend, b:divisor, c:quotient};
 }
 
@@ -202,22 +200,28 @@ function updateEquation(){
 			while(missed.length){eqs.push(missed.pop());}
 		}
 		else{
-			lvlDone=1;
+			practiceDone=1;
 			generateRandomEquation();
 		}
 	}
 	current = eqs.pop();
 	equation.textContent = `${current.a}${current.s}${current.b}`;
 	
-	if(lvlDone){
+	if(practiceDone){
 		rem.parentNode.classList.add('hide');
-		prog.classList.remove('hide');
+		quiz.classList.remove('hide');
+		header.textContent = 'Quiz Time';
+		bgColor.classList.add('grass');
+		bgColor.classList.remove('robin');
+		heart.textContent = '♥'.repeat(hearts);
 	}
 	else{
-		mis.textContent = missed.length;
 		rem.textContent = eqs.length + missed.length + 1;
 		rem.parentNode.classList.remove('hide');
-		prog.classList.add('hide');
+		quiz.classList.add('hide');
+		header.textContent = "Let's Practice";
+		bgColor.classList.remove('grass');
+		bgColor.classList.add('robin');
 	}
 
 }
@@ -251,10 +255,12 @@ function generateRandomEquation(){
 }
 
 function generateLevelEquations(){
+	hearts=3;
+	score=0;
 	difficulty = Number(lvl.value);
 	const keys = Object.keys(levels[difficulty]);
 	eqs.length = 0;
-	lvlDone = 0;
+	practiceDone = 0;
 	keys.forEach(
 		key => {
 			const min = levels[difficulty][key].min;
@@ -278,8 +284,9 @@ function generateLevelEquations(){
 					break;
 				}
 				case 'M':{
+					const m2 = Math.max(10, max);
 					for(let temp=min;temp<=max;temp++){
-						for(let multiplicand=0;multiplicand<=10;multiplicand++){
+						for(let multiplicand=0;multiplicand<=m2;multiplicand++){
 							eqs.push({s:'x', a:temp, b:multiplicand, c:temp*multiplicand});
 							eqs.push({s:'x', a:multiplicand, b:temp, c:temp*multiplicand});
 						}
@@ -287,10 +294,13 @@ function generateLevelEquations(){
 					break;
 				}
 				case 'D':{
+					const m2 = Math.max(10, max);
 					for(let i=min;i<=max;i++){
-						for(let j=0;j<=10;j++){
+						for(let j=0;j<=m2;j++){
 							eqs.push({s:'÷', a:i*j, b:i, c:j});
-							eqs.push({s:'÷', a:i*j, b:j, c:i});
+							if(j){
+								eqs.push({s:'÷', a:i*j, b:j, c:i});
+							}
 						}
 					}
 					break;

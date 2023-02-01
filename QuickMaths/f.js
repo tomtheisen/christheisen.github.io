@@ -5,7 +5,6 @@ const A = document.getElementById('answer');
 const ctx = F.getContext("2d", {alpha: true});
 F.addEventListener('click', (e) => {A.focus();});
 
-//TODO: adjust these
 const speed = 10;
 const G = -.05;
 const twoPI = Math.PI*2;
@@ -37,22 +36,23 @@ function manageFireworks(){
 	ctx.clearRect(0,0,W,H);
 	if(!fw.length){
 		AF=0;
-		document.getElementById('content').classList.remove('hide');
+		document.getElementById('wrapper').classList.remove('hide');
+		document.getElementById('answer').focus();
 		return;
 	}
 	AF = requestAnimationFrame(manageFireworks);
 	
-	if(encourageTimer>0){
-		encourage();
-	}
-
-for(let i=0;i<fw.length;i++){
+	for(let i=0;i<fw.length;i++){
 		fw[i].Move();
 		fw[i].Draw();
 		if(fw[i].Done()){
 			fw.splice(i,1);
 			i--;
 		}
+	}
+	
+	if(encourageTimer>0){
+		encourage();
 	}
 }
 
@@ -64,7 +64,8 @@ function showEncourage(duration){
 function encourage(){
 	encourageTimer--;
 	if(encourageTimer < 3){
-		document.getElementById('content').classList.remove('hide');
+		document.getElementById('wrapper').classList.remove('hide');
+		document.getElementById('answer').focus();
 	}
 	
 	const text = "LEVEL UP!";
@@ -89,6 +90,7 @@ function encourage(){
 	
 }
 function launchFirework(count=1){
+	if(fw.length > 25){return;}
 	for(let i=0;i<count;i++){
 		fw.push(new firework());
 	}
@@ -114,7 +116,7 @@ function firework(){
 	
 	this.hue = Math.floor(Math.random()*360);
 	this.sat = 100;
-	this.alpha = 70;
+	this.alpha = 100;
 	this.fragments = [];
 }
 
@@ -131,8 +133,8 @@ firework.prototype.Draw = function(){
 	}
 	
 	ctx.beginPath();
-	ctx.strokeStyle = `hsl(${this.hue},${this.sat}%,${this.alpha}%)`;
-	ctx.lineWidth = 2;
+	ctx.strokeStyle = `hsl(${this.hue},${this.sat}%,50%,${this.alpha}%)`;
+	ctx.lineWidth = 4;
 	ctx.moveTo(this.location.x, this.location.y);
 	ctx.lineTo(
 		this.location.x+this.delta.x*2, 
@@ -159,9 +161,8 @@ firework.prototype.Move = function(){
 	}
 }
 firework.prototype.Explode = function(){
-	//make the particles.
 	this.exploded = 1;
-	const particles = Math.random()*12+12;
+	const particles = Math.random()*30+150;
 	for(let i=0;i<particles;i++){
 		this.fragments.push(new fragment(this.location.x, this.location.y, this.hue));
 	}
@@ -172,8 +173,8 @@ function fragment(x,y,hue){
 	const v = Math.random() * twoPI;
 	const px = Math.random() * 5;
 	const py = Math.random() * 5;
-	const vx = Math.cos(v) * px * 2;
-	const vy = Math.sin(v) * py * 2;
+	const vx = Math.cos(v) * px * 4;
+	const vy = Math.sin(v) * py * 4;
 	this.velocity = new point(vx, vy);
 	this.hue = hue+(Math.floor(Math.random()*100)-50);
 	this.sat = 50;
@@ -182,12 +183,14 @@ function fragment(x,y,hue){
 }
 
 fragment.prototype.Draw = function(){
-	const r = 2;
+	const r = 4;
 	for(let i=0;i<this.trail.length;i++){
-		const alpha = 70-(i*5);
+		const alpha = 100-(i*7);
 		ctx.beginPath();
-		ctx.fillStyle = `hsl(${this.hue},50%,50%,${alpha}%)`;
-		ctx.arc(this.trail[i].x, this.trail[i].y, r, 0, twoPI);
+		ctx.fillStyle = `hsl(${this.hue},100%,50%,${alpha}%)`;
+		//ctx.arc(this.trail[i].x, this.trail[i].y, r, 0, twoPI);
+		ctx.fillRect(this.trail[i].x, this.trail[i].y, r, r);
+		
 		ctx.fill();
 		ctx.closePath();
 	}
@@ -198,7 +201,7 @@ fragment.prototype.Move = function(){
 	this.velocity.y -= G;
 	this.trail.unshift(this.location);
 	this.age--;
-	while(this.trail.length > 10){
+	while(this.trail.length > 5){
 		this.trail.pop();
 	}
 }

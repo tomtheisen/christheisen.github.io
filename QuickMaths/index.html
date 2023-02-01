@@ -11,24 +11,29 @@
 			</div>
 		</noscript>
 		<style>
-			.equation{
-				font-size: 72pt;
+			body{
+				font-family: sans-serif;
+				color: #335;
 			}
 			
-			.remaining{
-				font-size: 24pt;
+			.robin{
+				background-color: #87CEEB;				
+				position: fixed;
+				top:0;
+				bottom:0;
+				left:0;
+				right:0;
 			}
 			
-			input[type="number"]
-			{
-				font-size: 72pt;
-				width: 225px;
+			.grass{
+				background-color: #87CE87;
+				position: fixed;
+				top:0;
+				bottom:0;
+				left:0;
+				right:0;
 			}
-			
-			.prg{
-				width:225px;
-			}
-			
+		
 			.bg{
 				position: fixed;
 				inset: 0;
@@ -48,7 +53,21 @@
 				display:none;
 			}
 			
-			.wrapper{
+			.letsPractice{
+			
+			}
+			
+			.topRow{
+				text-align: center;
+			}
+			
+			.header{
+				font-size: 72pt;
+				font-weight: bold;
+				width:100%;
+			}
+			
+			.fillPage{
 			  display: table;
 			  position: absolute;
 			  top: 0;
@@ -63,41 +82,77 @@
 			}
 			
 			.content{
-
-			  text-align:center;
+				text-align:center;
+			}
+			
+			.equation{
+				font-size: 72pt;
+			}
+			
+			.practice{
+				font-size: 24pt;
+			}
+			
+			.answer
+			{
+				font-size: 72pt;
+				width: 225px;
+				border-radius: 30px;
+				padding: 5px;
+			}
+			
+			.prg{
+				width:225px;
+			}
+			
+			.hearts {
+				font-size: 48pt;
+				color: red;
 			}
 		</style>
 	</head>
 	<body>
-		<canvas class="bg" id="fireworks"></canvas>
-		<div class="wrapper">
-			<div class="cell">
-				<div id="content" class="content">
-					<div class="equation">
-						<label id="equation">1+1</label>
-					</div>
-					<div class="answer top">
-						<input type="number" id="answer" />
-					</div>
-					<div>
-						<progress id="progress" max="10" value="5" class="prg hide"></progress>
-						<div class="remaining">
-							<label id="remaining" class="remaining">0</label> Left
-							<br/>
-							<label id="missed" class="remaining">0</label>/5 Wrong
+		<div id="bgColor" class="robin">
+			<canvas class="bg" id="fireworks"></canvas>
+			<div id="wrapper">
+				<div class="topRow">
+					<label id="header" class="header">Let's Practice</label>
+					<hr/>
+				</div>
+				<div class="fillPage">
+
+					<div class="cell">
+						<div id="content" class="content">
+							<div style="position:fixed; top:0; right:0;">
+								<select class="top" id="difficulty" onChange="generateLevelEquations()">
+									<option value="0">Level 1</option>
+									<option value="1">Level 2</option>
+									<option value="2">Level 3</option>
+									<option value="3">Level 4</option>
+									<option value="4">Level 5</option>
+									<option value="5">Level 6</option>
+									<option value="6">Level 7</option>
+									<option value="7">Level 8</option>
+								</select>
+							</div>
+
+							<div class="equation">
+								<label id="equation">1+1</label>
+							</div>
+							<div class="top">
+								<input type="text" id="answer" class="answer" />
+							</div>
+							<div>
+								<div id="quiz" class="hide">
+									<progress id="progress" max="10" value="0" class="prg"></progress>
+									<br/>
+									<label id="hearts" class="hearts">♥♥♥</label>
+								</div>
+								<div id="practice" class="practice">
+									<label id="remaining" class="practice">0</label> Left
+								</div>
+							</div>
 						</div>
-					</div>
-					<div>
-						<select class="top" id="difficulty" onChange="generateLevelEquations()">
-							<option value="0">Level 1</option>
-							<option value="1">Level 2</option>
-							<option value="2">Level 3</option>
-							<option value="3">Level 4</option>
-							<option value="4">Level 5</option>
-							<option value="5">Level 6</option>
-							<option value="6">Level 7</option>
-							<option value="7">Level 8</option>
-						</select>
 					</div>
 				</div>
 			</div>
