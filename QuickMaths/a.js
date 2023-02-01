@@ -96,7 +96,7 @@ function checkAnswer(){
 	const x = Number(ans.value);
 	if(x===current.c){
 		eq.classList.remove('wrong');
-		launchFirework(2);
+		launchFirework(4);
 		updateEquation();
 		score += lvlDone*.5;
 		score = Math.min(score, 6);
