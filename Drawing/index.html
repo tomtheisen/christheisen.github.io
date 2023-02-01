@@ -1,0 +1,67 @@
+<html>
+<head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+	<title>Drawing Test</title>
+	<link rel="stylesheet" type="text/css" href="DrawingStyle.css">
+</head>
+<body>
+	<canvas id="canvasArea" style="border:1px solid #000;" ></canvas>
+
+	<div id="help" class="modalContainer" onclick="this.style.display='none';">
+		<div id="helpContent" class="modalContent">
+			<span style="float:right">Press [H] to toggle this help.</span>
+			<h1>Help:</h1>
+			<hr/>
+			<h3>Right side:</h3>
+			<ul>
+				<li>Buttons in top right will select type of shape to create.</li>
+				<li>Buttons to select individual shapes in the drawing will be along the right side.</li>
+				<li>Click the button of the selected shape to unselect it.</li>
+			</ul>
+			<hr/>
+			<h3>Bottom:</h3>
+			<ul>
+				<li>Select the color by clicking the color swatch in the lower left corner</li>
+				<li><b>Save</b> exports the drawing as a PNG.</li>
+				<li><b>Fill/Line</b> will toggle between creating filled shapes or outlines</li>
+				<li><b>Delete</b> button deletes selected shape or if no shape is selected the shape last created.</li>
+				<li><small>Pressing 'Delete' key will also delete selected shape but will do nothing if no shape is selected</small></li>
+				<li><b>Clone</b> creates a copy of the selected shape.</li>
+				<li><b>To Front</b> brings the selected shape to the front of the image.</li>
+				<li><b>To Back</b> pushes the selected shap to the back of the image.</li>
+				<li><b>Export</b> saves shape data in text format.</li>
+				<li><b>Import</b> imports shape data text.</li>
+			</ul>
+			<hr/>
+			<h3>Shape Manipulation:</h3>
+			<ul>
+				<li>Red diamonds move the selected shape.</li>
+				<li>Arrow keys will also move the selected shape.</li>
+				<li>Black circles adjust the key points of the selected shape.</li>
+			</ul>
+			<hr/>
+			<b>Note:</b> zoom buttons are not functional; I might come back to this project some day and finish them.
+		</div>
+	</div>
+
+	<div id="import" class="modalContainer" >
+		<div id="portContent" class="modalContent">
+			<textarea id="txtImport" rows="20" ></textarea>
+			<br/>
+			<button id="btnImport" type="button" onclick="Import()"  >Port</button>
+			<button id="btnCloseI" type="button" onclick="toggleDiv('import')"  >Close</button>
+		</div>
+	</div>
+
+
+	<div id="export" class="modalContainer" >
+		<div id="portContent" class="modalContent">
+			<textarea id="txtExport" rows="20" ></textarea>
+			<br/>
+			<button id="btnCloseE" type="button" onclick="toggleDiv('export')"  >Close</button>
+		</div>
+	</div>
+	<script src="Drawing.js"></script>
+</body>
+</html>
