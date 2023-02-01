@@ -36,6 +36,7 @@ const ans = document.getElementById('answer');
 const lvl = document.getElementById('difficulty');
 const prog = document.getElementById('progress');
 const rem = document.getElementById('remaining');
+const mis = document.getElementById('missed');
 const content = document.getElementById('content');
 
 const levels = [
@@ -107,12 +108,23 @@ function checkAnswer(){
 		score = Math.max(score, -6);
 		if(!lvlDone){
 			missed.push({s:current.s, a:current.a, b:current.b, c:current.c});
+			mis.textContent = missed.length;
+
+			if(missed.length>5){
+				missed.length = 0;
+				difficulty--;
+				difficulty = Math.max(0,difficulty);
+				score = 0;
+				lvl.value=difficulty+'';
+				generateLevelEquations();				
+			}
 		}
 	}
 	
 	while(score > 5 && difficulty < 8){
 		score-=7;
 		difficulty++;
+		difficulty = Math.min(7,difficulty);
 		lvl.value=difficulty+'';
 		generateLevelEquations();
 
@@ -126,6 +138,7 @@ function checkAnswer(){
 	while(score < -5 && difficulty > 0){
 		score+=5;
 		difficulty--;
+		difficulty = Math.max(0,difficulty);
 		lvl.value=difficulty+'';
 		generateLevelEquations();
 	}
@@ -182,7 +195,8 @@ function buildD(min, max){
 }
 
 function updateEquation(){
-	
+	eq.classList.remove('wrong');
+
 	if(!eqs.length){
 		if(missed.length){
 			while(missed.length){eqs.push(missed.pop());}
@@ -200,6 +214,7 @@ function updateEquation(){
 		prog.classList.remove('hide');
 	}
 	else{
+		mis.textContent = missed.length;
 		rem.textContent = eqs.length + missed.length + 1;
 		rem.parentNode.classList.remove('hide');
 		prog.classList.add('hide');

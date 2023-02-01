@@ -67,7 +67,7 @@ function encourage(){
 		document.getElementById('content').classList.remove('hide');
 	}
 	
-	const text = "Next Level!";
+	const text = "LEVEL UP!";
 	let px = Math.floor(W/6);
 	let width = 0;
 	
