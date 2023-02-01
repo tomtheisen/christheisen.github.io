@@ -325,6 +325,7 @@ function generateLevelEquations(){
 	}
 
 	updateEquation();
+	ans.focus();
 }
 
 generateLevelEquations();
