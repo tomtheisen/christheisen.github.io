@@ -2,14 +2,12 @@
 
 
 //practice
-	//do all equations from level
-	//don't show wrong/misses
+	//pass all equations from level
 
 //quiz
 	//3 hearts
 	//lose a heart when you get one wrong
-	//fill progress bar
-	//get 10 right to pass
+	//fill progress bar to pass
 
 //math levels mostly based on: https://mathfactsmatter.com/the-7-levels-of-math-fact-fluency/#
 
@@ -256,6 +254,14 @@ function generateRandomEquation(){
 	}
 }
 
+function addIfNotExist(s, a, b, c){
+	//no duplicates
+	if(eqs.some(x => x.s === s && x.a === a && x.b === b && x.c === c)){
+		return;
+	}
+	eqs.push({s:s, a:a, b:b, c:c});
+}
+
 function generateLevelEquations(){
 	hearts=3;
 	score=0;
@@ -272,7 +278,7 @@ function generateLevelEquations(){
 				case 'A':{
 					for(let sum=min;sum<=max;sum++){
 						for(let addend=min;addend<=sum;addend++){
-							eqs.push({s:'+', a:addend, b:sum-addend, c:sum});
+							addIfNotExist('+', addend, sum-addend, sum);
 						}
 					}
 					break;
@@ -280,7 +286,7 @@ function generateLevelEquations(){
 				case 'S':{
 					for(let minuend=min;minuend<=max;minuend++){
 						for(let subtrahend=min;subtrahend<=minuend;subtrahend++){
-							eqs.push({s:'-', a:minuend, b:subtrahend, c:minuend-subtrahend});
+							addIfNotExist('-', minuend, subtrahend, minuend-subtrahend);
 						}
 					}
 					break;
@@ -289,8 +295,10 @@ function generateLevelEquations(){
 					const m2 = Math.max(10, max);
 					for(let temp=min;temp<=max;temp++){
 						for(let multiplicand=0;multiplicand<=m2;multiplicand++){
-							eqs.push({s:'x', a:temp, b:multiplicand, c:temp*multiplicand});
-							eqs.push({s:'x', a:multiplicand, b:temp, c:temp*multiplicand});
+							addIfNotExist('x', temp, multiplicand, temp*multiplicand);
+							if(temp !== multiplicand){
+								addIfNotExist('x', multiplicand, temp, temp*multiplicand);
+							}
 						}
 					}
 					break;
@@ -300,10 +308,10 @@ function generateLevelEquations(){
 					for(let i=min;i<=max;i++){
 						for(let j=0;j<=m2;j++){
 							if(i){//no 0 divisor
-								eqs.push({s:'÷', a:i*j, b:i, c:j});
+								addIfNotExist('÷', i*j, i, j);
 							}
 							if(j){//no 0 divisor
-								eqs.push({s:'÷', a:i*j, b:j, c:i});
+								addIfNotExist('÷', i*j, j, i);
 							}
 						}
 					}
