@@ -45,7 +45,7 @@ function initialize_components(){
 		
 		resetInputs();
 		if(!loadURL()){
-			loadCookieData();
+			loadLocalStorage();
 		}
 		
 		createMinionSpawns();
