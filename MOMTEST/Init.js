@@ -44,9 +44,7 @@ function initialize_components(){
 		createAchievemetsTab();
 		
 		resetInputs();
-		if(!loadURL()){
-			loadLocalStorage();
-		}
+		loadLocalStorage();
 		
 		createMinionSpawns();
 		

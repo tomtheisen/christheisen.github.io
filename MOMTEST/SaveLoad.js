@@ -32,20 +32,6 @@ function setCookie(key, value, expire){
 	document.cookie = `${key}=${value};expires=${expire};SameSite=Strict;domain=${document.domain};path=/`;
 }
 
-function loadURL(){
-	var url = new URL(window.location.href);
-	var d = url.searchParams.get("D");
-	if(d !== null){
-		const gameState = atob(d);
-		loadDataFromString(gameState);
-		buildWorld();
-		yesCookies();
-		window.history.replaceState({}, document.title, url.origin+url.pathname);
-	}
-	
-	return false;
-}
-
 function isEmpty(item){
 	return Object.keys(item).length === 0;
 }
