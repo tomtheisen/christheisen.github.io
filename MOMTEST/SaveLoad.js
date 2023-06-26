@@ -28,6 +28,12 @@ function getLocalStorage(prefix){
 	return localStorage.getItem(prefix);
 }
 
+function saveBeforeUnload(e) => {
+	if(mainCycle>0 && autoSave()){
+		saveData();
+	}
+}
+
 function setCookie(key, value, expire){
 	document.cookie = `${key}=${value};expires=${expire};SameSite=Strict;domain=${document.domain};path=/`;
 }

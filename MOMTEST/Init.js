@@ -61,11 +61,7 @@ function initialize_components(){
 		
 		setColorblind();
 		
-		window.addEventListener("beforeunload", (event) => {
-			if(mainCycle>0 && autoSave()){
-				saveData();
-			}
-		});
+		window.addEventListener("beforeunload", saveBeforeUnload);
 		window.addEventListener("focus", (event) => {
 			drawMap();
 		});
