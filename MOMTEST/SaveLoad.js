@@ -28,7 +28,7 @@ function getLocalStorage(prefix){
 	return localStorage.getItem(prefix);
 }
 
-function saveBeforeUnload(e) => {
+function saveBeforeUnload(e) {
 	if(mainCycle>0 && autoSave()){
 		saveData();
 	}
