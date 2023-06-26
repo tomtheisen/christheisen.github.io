@@ -44,6 +44,7 @@ function initialize_components(){
 		createAchievemetsTab();
 		
 		resetInputs();
+		loadCookieData();
 		loadLocalStorage();
 		
 		createMinionSpawns();
@@ -60,12 +61,8 @@ function initialize_components(){
 		
 		setColorblind();
 		
-		if(!cookiesEnabled){
-			getUIElement("btnMnuArmory").click();
-			document.getElementById("introModal").classList.remove('hide');
-		}
 		window.addEventListener("beforeunload", (event) => {
-			if(cookiesEnabled && mainCycle>0 && autoSave()){
+			if(mainCycle>0 && autoSave()){
 				saveData();
 			}
 		});

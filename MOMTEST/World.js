@@ -126,7 +126,6 @@ function isDeathAbilityActive(){
 
 function hardReset(){
 	deleteSaveData();
-	cookiesEnabled=0;
 	window.location.reload(false);
 }
 function resetWorld(){

@@ -131,7 +131,6 @@ function loadLocalStorage(){
 	const saveData = getLocalStorage(gameKey);
 	if(saveData && saveData != null){
 		//if save data exists don't ask again.
-		yesCookies();
 		toggleUIElementByID("introModal", true);
 		loadDataFromString(atob(saveData));
 	}
