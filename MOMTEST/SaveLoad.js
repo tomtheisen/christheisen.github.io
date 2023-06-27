@@ -4,14 +4,20 @@ const invKey = "MOM_INV";
 const optKey = "MOM_OPT";
 
 //https://www.base64decode.org/
-function deleteSaveData(){
-	//Used to use session cookies for save, this should clear out any lingering.
-    setCookie("gs", "", new Date(0).toUTCString());
-    setCookie("inv", "", new Date(0).toUTCString());
-    setCookie("opt", "", new Date(0).toUTCString());
+function deleteLocalStorage(){
 	localStorage.removeItem(gameKey);
 	localStorage.removeItem(invKey);
 	localStorage.removeItem(optKey);
+}
+function deleteCookies(){
+    setCookie("gs", "", new Date(0).toUTCString());
+    setCookie("inv", "", new Date(0).toUTCString());
+    setCookie("opt", "", new Date(0).toUTCString());
+}
+
+function deleteSaveData(){
+	deleteLocalStorage();
+	deleteCookies();
 }
 function getCookie(prefix) {
 	const dc = document.cookie;
@@ -134,13 +140,6 @@ function offlineGains(minutes){
 	toggleUIElementByID("gainsModal", false);
 }
 
-function loadData(){
-	//if local storage exists
-	if(!loadLocalStorage()) //if local storage fails, try cookies.
-		loadCookieData();
-	}
-}
-
 function loadLocalStorage(){
 	let dataLoaded = false;
 	const saveData = getLocalStorage(gameKey);
@@ -179,6 +178,12 @@ function loadCookieData(){
 	const inventory = getCookie("inv");
 	if(inventory && inventory != null){
 		loadDataFromString(atob(inventory));
+	}
+}
+function loadData(){
+	//if local storage exists
+	if(!loadLocalStorage()){ //if local storage fails, try cookies.
+		loadCookieData();
 	}
 }
 function loadDataFromString(saveString){
