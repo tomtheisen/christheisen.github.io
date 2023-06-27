@@ -5,9 +5,10 @@ const optKey = "MOM_OPT";
 
 //https://www.base64decode.org/
 function deleteSaveData(){
+	//Used to use session cookies for save, this should clear out any lingering.
     setCookie("gs", "", new Date(0).toUTCString());
-    setCookie("opt", "", new Date(0).toUTCString());
     setCookie("inv", "", new Date(0).toUTCString());
+    setCookie("opt", "", new Date(0).toUTCString());
 	localStorage.removeItem(gameKey);
 	localStorage.removeItem(invKey);
 	localStorage.removeItem(optKey);
@@ -133,30 +134,39 @@ function offlineGains(minutes){
 	toggleUIElementByID("gainsModal", false);
 }
 
+function loadData(){
+	//if local storage exists
+	if(!loadLocalStorage()) //if local storage fails, try cookies.
+		loadCookieData();
+	}
+}
+
 function loadLocalStorage(){
+	let dataLoaded = false;
 	const saveData = getLocalStorage(gameKey);
 	if(saveData && saveData != null){
 		//if save data exists don't ask again.
+		dataLoaded = true;
 		toggleUIElementByID("introModal", true);
 		loadDataFromString(atob(saveData));
 	}
 	
 	const options = getLocalStorage(optKey);
 	if(options && options !== null){
+		dataLoaded = true;
 		loadDataFromString(atob(options));
 	}
 	
 	const inventory = getLocalStorage(invKey);
 	if(inventory && inventory != null){
+		dataLoaded = true;
 		loadDataFromString(atob(inventory));
 	}
-
+	return dataLoaded;
 }
 function loadCookieData(){
 	const saveData = getCookie("gs");
 	if(saveData && saveData != null){
-		//if save data exists don't ask again.
-		yesCookies();
 		toggleUIElementByID("introModal", true);
 		loadDataFromString(atob(saveData));
 	}
@@ -436,10 +446,33 @@ function loadOptions(saveData){
 	}
 }
 
-function saveData() {
+
+//used to test old cookie saves, shouldn't be used.
+function saveDataOLD(){
 	const d = new Date();
-	d.setDate(d.getTime() + 7);
+	d.setDate(d.getDate() + 7);
 	
+	const game = buildGameState(true, false, false);
+	const inv = buildGameState(false, true, false);
+	const opt = buildGameState(false, false, true);
+	//const full = buildGameState(true, true, true);
+	
+	const saveGame = btoa(game);
+	const saveInv = btoa(inv);
+	const saveOpt = btoa(opt);
+	//const saveFull = btoa(full);
+	
+	localStorage.setItem(gameKey, saveGame);
+	localStorage.setItem(invKey, saveInv);
+	localStorage.setItem(optKey, saveOpt);
+	
+	//console.log("save data:", saveFull.length, saveFull);
+	lastSave = 0;
+	
+	document.getElementById("txtExport").value = null;
+}
+
+function saveData() {
 	const game = buildGameState(true, false, false);
 	const inv = buildGameState(false, true, false);
 	const opt = buildGameState(false, false, true);
