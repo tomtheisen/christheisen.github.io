@@ -74,8 +74,6 @@ const gameRate = 11;
 const buySellRate = 211;
 
 function update(){
-	
-	
 	if(gameClock < 3600000){//one hour
 		const now = performance.now();
 		gameClock += now-lastUpdate;
