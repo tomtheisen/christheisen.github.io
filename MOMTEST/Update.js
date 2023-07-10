@@ -69,17 +69,39 @@ function updateWorld(){
 let nextUpdate=0;
 let lastUpdate = performance.now();
 let gameClock = 0;
+let buySellClock = 0;
+const gameRate = 11;
+const buySellRate = 211;
+
 function update(){
 	
-	if(gameClock<3600000){
+	
+	if(gameClock < 3600000){//one hour
 		const now = performance.now();
 		gameClock += now-lastUpdate;
+		buySellClock += now-lastUpdate;
 		lastUpdate = now;
 	}
 	
-	if(gameClock > 11){
-		gameClock-=11;
+	const ketchup = getUIElement('ketchup');
+	if(gameClock > 2000){
+		toggleUIElement(ketchup, false);
+		setElementTextById('gameClockRemaining', Math.floor(gameClock));
+	}
+	else{
+		toggleUIElement(ketchup, true);
+	}
+
+	let maxCycles = 1000 / gameRate;
+	while(gameClock > gameRate && maxCycles-- > 0){
+		gameClock-=gameRate;
 		doUpdate();
+	}
+	
+	maxCycles = 1000 / buySellRate;
+	while(buySellClock > buySellRate && maxCycles-- > 0){
+		buySellClock -= buySellRate;
+		autoBuySell();
 	}
 }
 function doUpdate(){
@@ -387,7 +409,7 @@ function minionAutoUnlock(tier){
 	return true;
 }
 function minionAutobuy(tier){
-	let cheapest = Infinity;
+	let cheapest = getAutoClickLimit();
 	let m = null;
 	let u = null;
 	const upgrades = minionUpgradeTypes[tier];
@@ -538,7 +560,7 @@ function updatePnl1(){
 	}
 	else if(!isUIElementHiddenByID("divInfo")){}
 	else if(!isUIElementHiddenByID("divOptions")){
-		//updateOptionsTab();
+		updateOptionsTab();
 	}
 }
 function toggleTierItems(){
@@ -1196,6 +1218,7 @@ function updateChestStore(){
 
 function updateAchievements(){
 	
+	
 	const score = getAchievementScore();
 	setElementTextById("score", score);
 	
@@ -1225,6 +1248,20 @@ function updateAchievements(){
 		
 		setElementText(achievement.maxCount, achievements[type].maxCount||"0");
 		setElementText(achievement.count, achievements[type].count||"0");
+	}
+}
+function updateOptionsTab(){
+	const maxLevel = getMaxUpgradeLevel();
+	const ddl = getUIElement('ddlAutoClickLimit');
+	
+	addOptionIfNotExists('ddlAutoClickLimit', 'MAX', 'Infinity');
+	
+	for(let i=2;i<=maxLevel;i++){
+		addOptionIfNotExists('ddlAutoClickLimit', `${i}`, `${i}`);
+	}
+	
+	if(ddl.selectedIndex === -1){
+		ddl.value = 'Infinity';
 	}
 }
 
