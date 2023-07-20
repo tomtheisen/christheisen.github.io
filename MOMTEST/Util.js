@@ -250,6 +250,15 @@ function getAutoClickLimit(){
 	return Number(selectedValue);
 }
 
+function getRestartZone(){
+	const ddl = getUIElement('ddlRestartZone');
+	const index = ddl.selectedIndex;
+	if(index < 0){return Infinity;}//default value;
+	
+	const selectedValue = ddl.options[index].value;
+	return Math.min(achievements.maxLevelCleared.maxCount, Number(selectedValue));
+}
+
 function pickAKey(input){
 	const keys = Object.keys(input);
 	const index = getRandomInt(0, keys.length)

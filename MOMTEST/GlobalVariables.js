@@ -13,6 +13,7 @@ let projectiles = [];
 let impacts = [];
 let totalPaths = 0;//Use for levels
 let level = 0;
+let zone = 0;
 let levelEndX = 0;
 let levelStartX = 0;
 let resetLevel = 0;

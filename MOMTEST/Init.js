@@ -40,6 +40,7 @@ function initialize_components(){
 		createTierUpgrades();
 		createGaugesTable();
 		createBossTab();
+		createMinionSpawns();
 		createStoreStock();
 		createAchievemetsTab();
 		
@@ -47,7 +48,6 @@ function initialize_components(){
 		loadCookieData();
 		loadLocalStorage();
 		
-		createMinionSpawns();
 		
 		buildWorld();
 		
@@ -213,7 +213,6 @@ function createMinionSpawns(){
 
 		const chk = createNewElement("input", chkId, base, [], null);
 		chk.type = "checkbox";
-		chk.checked = minionResearch[minionType].isUnlocked;
 		
 		const bg = createNewElement("div", baseId+"Back", base, ["progressBackground"], null);
 		bg.style.backgroundColor = "#777"

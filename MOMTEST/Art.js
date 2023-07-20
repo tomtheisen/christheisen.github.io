@@ -89,7 +89,7 @@ function drawHUD() {
 }
 
 function drawLevelEnd(scale) {
-	const age = achievements.maxLevelCleared.maxCount % 4;
+	const age = zone%4;
 	
 	switch(age) {
 		case 0: {
@@ -644,7 +644,7 @@ function drawGate(scale, x, colors) {
 
 
 function drawRuins(scale) {
-	const age = achievements.maxLevelCleared.maxCount;
+	const age = zone%4;
 	
 	switch(age) {
 		case 0: {
@@ -1145,7 +1145,7 @@ function drawMap() {
 }
 
 function drawUnits() {
-	if(paused) { return; }
+	if(paused || isUIElementHidden(pnl0)) { return; }
 	
 	requestAnimationFrame(drawUnits);
 	Quality = GetQuality();
