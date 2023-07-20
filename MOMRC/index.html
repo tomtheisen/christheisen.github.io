@@ -77,7 +77,7 @@
 					</ul>
 				</div>
 			</div>
-			<div id="confirmModal" class="modalContainer hide" onclick="this.classList.add('hide');">
+			<div id="confirmModal" class="modalContainer hide">
 				<div id="confirmContent" class="modalContent confirmContent">
 					<div class="message">
 						<p>
@@ -639,6 +639,9 @@
 							<p class="t1">
 								<label for="ddlAutoClickLimit">Auto-click limit:</label>
 								<select id="ddlAutoClickLimit"></select>
+								<br/>
+								<label for="ddlRestartZone">Restart Zone:</label>
+								<select id="ddlRestartZone"></select>
 							</p>
 							<div id="divPort" class="p1BlockBaby flex">
 								<div id="divExport" class="port">
@@ -1105,6 +1108,7 @@
 									<b>Style</b> Switch between light and dark styles.<br/>
 									<b>Colorblind</b> This will toggle colors.<br/>
 									<span class="t1"><b>Auto-click Limit</b> Sets the highest level auto-click will click, this can be used to adjust Regroup/etc times. Note: This setting only limits minion upgrades.<br/></span>
+									<span class="t1"><b>Restart Zone</b> Sets the zone that will be started on a restart (Regroup/etc). Max level cleared feats will only increase on the highest zone reached. <br/></span>
 									<b>Export</b> and <b>Import</b> will allow you to export save data and import save data. Useful if you want to backup your save, share your save, or switch to a different computer.<br/>
 									<b>Display Details</b> toggles drawing extra information on the Map.<br/>
 									<b>Clear Data and Start Over</b> deletes any save data and reloads a fresh game from the beginning.<br/>
@@ -1326,14 +1330,15 @@
 			</div>
 			<button id="btnReshowP1" style="position:fixed;bottom:0;left:100px;" onclick="ShowP1()">Show Info Panel</button>
 			<div id="ketchup" class="ketchup">
-				Catching Up: <br/>
-				<span id="gameClockRemaining">0</span>
+				Catching Up: <span id="gameClockRemaining">0</span>
+			</div>
+			<div id="ketchupInfo" class="ketchupInfo">
 				<p class="miscNote">
-					Many browsers slow processing on background tabs and windows and reduce the game speed, this should catch you up (up to 1 hour).
+					Many browsers slow processing on background tabs and windows which can reduce the game speed, this should catch you up (up to 1 hour).
 				</p>
 				<p class="miscNote">
 					Reducing the Quality in the Options tab can speed up the catch-up timer.<br/>
-					Reloading the page will reset the remaining catch-up timer.
+					Reloading the page will clear the remaining catch-up timer.
 				</p>
 			</div>
 			<div id="divAutoSave" class="autoSave">
