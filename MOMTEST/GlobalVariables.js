@@ -55,6 +55,7 @@ let p0Cycle = 0;
 let p1Cycle = 0;
 let mainCycle = 0;
 let sinceQuid = 0;
+let animationId = 0;
 
 let consecutiveMainCylceErrors = 0;
 let consecutiveBuySellErrors = 0;

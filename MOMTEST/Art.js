@@ -1146,8 +1146,8 @@ function drawMap() {
 
 function drawUnits() {
 	if(paused || isUIElementHidden(pnl0)) { return; }
+	animationId = requestAnimationFrame(drawUnits);
 	
-	requestAnimationFrame(drawUnits);
 	Quality = GetQuality();
 	
 	//Refresh background

@@ -62,7 +62,6 @@ function updateWorld(){
   	manageProjectiles();
   	manageImpacts();
 	manageBombCountdown();
-	
   	
   	checkLevelComplete();
 }

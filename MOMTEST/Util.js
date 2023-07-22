@@ -24,7 +24,10 @@ function start(){
 	//Not sure how much it matters, but I used some cicada strategies to avoid all triggering at the same time.
 	setAchievementInterval(503);//around 2x per second
 	setSaveInterval(601);//around 100x per minute
-	requestAnimationFrame(drawUnits);
+	
+	if(!animationID){
+		animationID = requestAnimationFrame(drawUnits);
+	}
 	
 	setP1Rate();
 	
@@ -102,6 +105,10 @@ function stop(){
 	
 	clearInterval(mainCycle);
 	mainCycle=0;
+	
+	cancelAnimationFrame(animationId);
+	animationId = 0;
+
 }
 
 function getScale(){return (pathL+pathW)/2;}
