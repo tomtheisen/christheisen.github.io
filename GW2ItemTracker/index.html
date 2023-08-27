@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type"/>
+		<style>
+			.tableRow{
+			margin: 10px 0;
+			display: flex;
+			border: solid 1px #DDD;
+			cursor: pointer;
+			}
+			
+			.tableCell{
+			margin: 10px 10px;
+			width: 150px;
+			min-width: 100px;
+			}
+			
+			.buyRow{
+			background-color: #7A7;
+			}
+			
+			.orderRow{
+			background-color: #DD4;
+			}
+			
+			img{
+			height: 32px;
+			width: 32px;
+			}
+		</style>
+		<title>GW2 TP Tracker</title>
+		<script>
+			const storageKey = 'GW2TPT_IP'
+			const IdPrices = JSON.parse(localStorage.getItem(storageKey)) || [];
+			const itemPrices = [];
+			
+			function addIdPrice(id, price){
+				id = Number(id);
+				price = Number(price)
+				if(IdPrices.some(x => x.id === id)){
+					if(confirm('Item already exists in list. Update price?')){
+						IdPrices.find(x => x.id === id).price = price;
+					}
+					return;
+				}
+				
+				IdPrices.push({id: id, price: price});
+				localStorage.setItem(storageKey, JSON.stringify(IdPrices));
+			}
+			
+			function removeItem(id){
+				const index = IdPrices.map(x => x.id).indexOf(id);
+				if(index < 0){return;}
+				IdPrices.splice(index,1);
+				localStorage.setItem(storageKey, JSON.stringify(IdPrices));
+				getData();
+			}
+			
+			function addItem(){
+				const id = document.getElementById('id').value;
+				const price = document.getElementById('price').value;
+				addIdPrice(Number(id), Number(price));
+				
+				document.getElementById('id').value = '';
+				document.getElementById('price').value = '';
+				
+				getData();
+			}
+			
+			function addItemPrice(item, price, threshold){
+				if(!item?.id || !price?.id){return;}
+				if(item?.id !== price?.id){
+					console.warn(`Item Mismatch: ${item.id} !== ${price.id}`);
+					return;
+				}
+				
+				itemPrices.push({
+					id: item.id,
+					name: item.name,
+					icon: item.icon,
+					threshold: threshold,
+					vendorValue: item.vendor_value,
+					buyQuantity: price.buys.quantity,
+					buyPrice: price.buys.unit_price/10000,
+					sellQuantity: price.sells.quantity,
+					sellPrice: price.sells.unit_price/10000
+				});
+			}
+			
+			function addText(parent, text){
+				const cell = document.createElement('div');
+				cell.className = 'tableCell';
+				
+				const temp = document.createTextNode(text);
+				cell.appendChild(temp);
+				
+				parent.appendChild(cell);
+			}
+			
+			function buildItemPriceDiv(parent, itemPrice){
+				const div = document.createElement('div');
+				div.className = 'tableRow';
+				div.addEventListener('click', ()=>{
+					const selectId = div.children[2].innerText;
+					const selectPrice = div.children[5].innerText;
+					
+					document.getElementById('id').value = selectId;
+					document.getElementById('price').value = selectPrice;
+				})
+				
+				const img = document.createElement('img');
+				img.src = itemPrice.icon;
+				div.appendChild(img);
+				
+				addText(div, itemPrice.name);
+				addText(div, itemPrice.id);
+				addText(div, itemPrice.sellPrice);
+				addText(div, itemPrice.buyPrice);
+				addText(div, itemPrice.threshold);
+				
+				const btn = document.createElement('button');
+				btn.appendChild(document.createTextNode('X'));
+				btn.addEventListener('click', () => removeItem(itemPrice.id));
+				div.appendChild(btn);
+				
+				if(itemPrice.sellPrice < itemPrice.threshold){
+					div.classList.add('buyRow');
+				}
+				else if(itemPrice.buyPrice < itemPrice.threshold){
+					div.classList.add('orderRow');
+				}
+				
+				parent.appendChild(div);
+			}
+			
+			async function getData(){
+				const ids = IdPrices.map(x => x.id);
+				const payload = ids.join(',');
+				itemPrices.length = 0;
+				
+				//https://wiki.guildwars2.com/wiki/API:2
+				const getPrices = `https://api.guildwars2.com/v2/commerce/prices?ids=${payload}`
+				const getItems = `https://api.guildwars2.com/v2/items?ids=${payload}`
+				
+				const items = await (await fetch(getItems)).json();
+				const prices = await (await fetch(getPrices)).json();
+				
+				ids.forEach(id => {
+					const item = items.find(x => x.id === id);
+					const price = prices.find(x => x.id === id);
+					const threshold = IdPrices.find(x => x.id === id).price;
+					addItemPrice(item, price, threshold);
+				})
+				
+				const outputDiv = document.getElementById('output');
+				while(outputDiv.firstChild){outputDiv.removeChild(outputDiv.firstChild);}
+				itemPrices.sort((a,b) => a.name.localeCompare(b.name));
+				itemPrices.forEach(x => buildItemPriceDiv(outputDiv, x));
+			}
+			
+			function exportStorage(){
+				var textToSave = JSON.stringify(IdPrices);
+				var textToSaveAsBlob = new Blob([textToSave], {type: "text/plain"});
+				var textToSaveAsURL = window.URL.createObjectURL(textToSaveAsBlob);
+				
+				var downloadLink = document.createElement("a");
+				downloadLink.download = 'GW2TPT export.txt';
+				downloadLink.innerHTML = "Download File";
+				downloadLink.href = textToSaveAsURL;
+				downloadLink.onclick = function () {
+					document.body.removeChild(event.target);
+				};
+				downloadLink.style.display = "none";
+				document.body.appendChild(downloadLink);
+				downloadLink.click();
+			}
+			
+			function importStorage(sender){
+				const file = sender.files[0];
+				
+				file.text().then((content) => {
+					localStorage.setItem(storageKey, content);
+					window.location.reload();
+				});
+			}
+			
+			getData();
+		</script>
+	</head>
+	<body>
+		<div id="input">
+			<div>
+				<label for='id'>ID:</label><input type="number" id="id" min="0" max="900000" />
+				<label for='price'>Price(G):</label><input type="number" id="price" min="0" max="10000" />
+				<button onclick="addItem()">Add Item</button>
+				
+				<div style="float:right">
+					|
+					<label for='upload'>Import:</label>
+					<input type='file' id='upload' name='upload' accept='txt' onchange='importStorage(this)'/>
+					|
+					<button id='export' onclick='exportStorage()'>Export</button>
+				</div>
+			</div>
+			<hr/>
+		</div>
+		<div id="output"></div>
+	</body>
+</html>
