@@ -150,7 +150,8 @@
 					return;
 				}
 				
-				const owned = materials.find(x => x.id === item.id);
+				console.log(materials);
+				const owned = materials ? materials.find(x => x.id === item.id) : null;
 				itemPrices.push({
 					id: item.id,
 					name: item.name,
@@ -248,7 +249,10 @@
 				
 				const items = await (await fetch(getItems)).json() || [];
 				const prices = await (await fetch(getPrices)).json() || [];
-				materials = await (await fetch(getStorage)).json() || [];
+				if(!!authToken){
+					const tempMaterials = await (await fetch(getStorage)).json() || [];
+					materials = Array.isArray(tempMaterials) ? tempMaterials : [];
+				}
 				
 				IdPrices.forEach(temp => {
 					const item = items.find(x => x.id === temp.id);
