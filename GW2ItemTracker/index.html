@@ -193,6 +193,26 @@
 				});
 			}
 			
+			function addLink(parent, text, isHead, highlight){
+				const cell = document.createElement('div');
+				cell.title = text;
+				cell.className = isHead ? 'headCell':'tableCell';
+				
+				if(highlight){
+					cell.classList.add('targetAchieved');
+				}
+				
+				const temp = document.createElement('a');
+				temp.appendChild(document.createTextNode(text));
+				temp.title=text;
+				temp.href = `https://wiki.guildwars2.com/wiki/${text.replaceAll(' ', '_')}`
+				temp.target = '_blank';
+				
+				cell.appendChild(temp);
+				
+				parent.appendChild(cell);
+			}
+			
 			function addText(parent, text, isHead, highlight){
 				const cell = document.createElement('div');
 				cell.title = text;
@@ -230,7 +250,7 @@
 				const shouldSell = activeTab === tabCostWatcher && !isHead && itemPrice.buyPrice > itemPrice.sellTarget;
 				
 				div.appendChild(img);
-				addText(div, itemPrice.name, isHead, 0);
+				addLink(div, itemPrice.name, isHead, 0);
 				addText(div, itemPrice.id, isHead, 0);
 				addText(div, itemPrice.buyPrice, isHead, shouldSell);
 				if(activeTab === tabCostWatcher){addText(div, itemPrice.sellTarget, isHead, shouldSell);}
