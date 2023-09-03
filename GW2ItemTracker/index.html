@@ -9,8 +9,22 @@
 			cursor: pointer;
 			}
 			
+			.tabButton{
+				width: 150px;
+				margin: 0;
+				background-color:#FFF;
+				color: #777;
+				border: solid 1px #777;
+				cursor: pointer;
+			}
+			
+			.selectedTab{
+				background-color:#ABC;
+				color: #000;
+			}
+			
 			.inputRow{
-				margin: 10px 0;
+			margin: 10px 0;
 			}
 			
 			.tableRow{
@@ -61,12 +75,15 @@
 			}
 			
 			.inputArea{
-			display:flex;
 			min-width: 777px;
 			}
 			
 			.outputArea{
 			
+			}
+			
+			.hidden{
+			display:none;
 			}
 			
 		</style>
@@ -78,18 +95,25 @@
 			const IdPrices = JSON.parse(localStorage.getItem(storageKey)) || [];
 			const itemPrices = [];
 			let materials = [];
+			const tabCostWatcher = 'tabCostWatcher';
+			const tabMaterialStorage = 'tabMaterialStorage';
+			const tabs = [tabCostWatcher, tabMaterialStorage];
+			let activeTab = 'tabCostWatcher';
+			
 			const colHeaders = {
 				id: 'ID',
 				name: 'Name',
 				icon: 'https://wiki.guildwars2.com/images/thumb/d/db/Guild_Wars_2_logo.svg/1200px-Guild_Wars_2_logo.svg.png',
 				buyTarget: 'Buy Target',
 				sellTarget: 'Sell Target',
-				vendorValue: 'Vendor Value',
+				vendorValue: 'Vendor Value (G)',
 				buyQuantity: 'Buys qty',
-				buyPrice: 'Current Top Buyer',
+				buyPrice: 'Current Top Buyer (G)',
 				sellQuantity: 'Sells qty',
-				sellPrice: 'Current Top Seller',
-				storage: 'In Storage'
+				sellPrice: 'Current Top Seller (G)',
+				storage: 'In Storage',
+				totalVendorValue: 'Total Vendor Value (G)',
+				totalTPValue: 'Total TP Value (G)'
 			};
 			let apiKey = null;
 			
@@ -150,20 +174,22 @@
 					return;
 				}
 				
-				console.log(materials);
 				const owned = materials ? materials.find(x => x.id === item.id) : null;
+				
 				itemPrices.push({
 					id: item.id,
 					name: item.name,
 					icon: item.icon,
 					buyTarget: buyTarget,
 					sellTarget: sellTarget,
-					vendorValue: item.vendor_value,
+					vendorValue: item.vendor_value/10000,
 					buyQuantity: price.buys.quantity,
 					buyPrice: price.buys.unit_price/10000,
 					sellQuantity: price.sells.quantity,
 					sellPrice: price.sells.unit_price/10000,
-					storage: owned?.count || 0
+					storage: owned?.count || 0,
+					totalVendorValue: item.vendor_value * owned?.count / 10000,
+					totalTPValue: price.buys.unit_price * owned?.count / 10000
 				});
 			}
 			
@@ -186,7 +212,7 @@
 				if(!parent){return;}
 				const div = document.createElement('div');
 				div.className = 'tableRow';
-
+				
 				const img = document.createElement('img');
 				img.src = itemPrice.icon;
 				img.alt = itemPrice.id;
@@ -200,17 +226,20 @@
 					document.getElementById('sellTarget').value = item.sellTarget;
 				})
 				
-				const shouldBuy = !isHead && itemPrice.sellPrice < itemPrice.buyTarget;
-				const shouldSell = !isHead && itemPrice.buyPrice > itemPrice.sellTarget;
+				const shouldBuy = activeTab === tabCostWatcher && !isHead && itemPrice.sellPrice < itemPrice.buyTarget;
+				const shouldSell = activeTab === tabCostWatcher && !isHead && itemPrice.buyPrice > itemPrice.sellTarget;
 				
 				div.appendChild(img);
 				addText(div, itemPrice.name, isHead, 0);
 				addText(div, itemPrice.id, isHead, 0);
 				addText(div, itemPrice.buyPrice, isHead, shouldSell);
-				addText(div, itemPrice.sellTarget, isHead, shouldSell);
-				addText(div, itemPrice.sellPrice, isHead, shouldBuy);
-				addText(div, itemPrice.buyTarget, isHead, shouldBuy);
-				addText(div, itemPrice.storage, isHead, !isHead && itemPrice.storage > 950);
+				if(activeTab === tabCostWatcher){addText(div, itemPrice.sellTarget, isHead, shouldSell);}
+				if(activeTab === tabCostWatcher){addText(div, itemPrice.sellPrice, isHead, shouldBuy);}
+				if(activeTab === tabCostWatcher){addText(div, itemPrice.buyTarget, isHead, shouldBuy);}
+				if(activeTab === tabMaterialStorage){addText(div, itemPrice.vendorValue, isHead, shouldSell);}
+				addText(div, itemPrice.storage, isHead, activeTab === tabCostWatcher && !isHead && itemPrice.storage > 950);
+				if(activeTab === tabMaterialStorage){addText(div, itemPrice.totalTPValue, isHead);}
+				if(activeTab === tabMaterialStorage){addText(div, itemPrice.totalVendorValue, isHead);}
 				
 				if(isHead){
 					const spacer = document.createElement('div');
@@ -222,23 +251,21 @@
 					return;
 				}
 				
-				const btn = document.createElement('button');
-				btn.appendChild(document.createTextNode('X'));
-				btn.addEventListener('click', () => removeItem(itemPrice.id));
-				div.appendChild(btn);
+				if(activeTab === tabCostWatcher){
+					const btn = document.createElement('button');
+					btn.appendChild(document.createTextNode('X'));
+					btn.addEventListener('click', () => removeItem(itemPrice.id));
+					div.appendChild(btn);
+				}
 				
 				parent.appendChild(div);
 			}
 			
-			async function getData(){
-				const outputDiv = document.getElementById('output');
-				while(outputDiv?.firstChild){outputDiv.removeChild(outputDiv.firstChild);}
-			
+			async function getCostData(outputDiv){
 				const ids = IdPrices.map(x => x.id).filter(x => x > 0);
 				if(ids.length === 0){return;}
 				
 				const payload = ids.join(',');
-				itemPrices.length = 0;
 				
 				//https://wiki.guildwars2.com/wiki/API:2
 				const getPrices = `https://api.guildwars2.com/v2/commerce/prices?ids=${payload}`;
@@ -263,6 +290,69 @@
 				itemPrices.sort((a,b) => a.name.localeCompare(b.name));
 				buildItemPriceDiv(outputDiv, colHeaders, true);
 				itemPrices.forEach(x => buildItemPriceDiv(outputDiv, x, false));
+			}
+			
+			async function getMaterialStorageData(outputDiv){
+				const authToken=getApi();
+				const getStorage = `https://api.guildwars2.com/v2/account/materials?v=2021-07-24T00%3A00%3A00Z&access_token=${authToken}`;
+				if(!authToken){
+					alert('No API token');
+					return;
+				}
+				
+				const tempMaterials = await (await fetch(getStorage)).json() || [];
+				materials = Array.isArray(tempMaterials) ? tempMaterials : [];
+				
+				if(materials.length < 1){return;}
+				
+				const limit = Number(document.getElementById('materialThreshold').value);
+				materials = materials.filter(x => x.count >= limit);
+				if(materials.length < 1){return;}
+				
+				const payload = materials.map(x => x.id).join(',');
+				const getPrices = `https://api.guildwars2.com/v2/commerce/prices?ids=${payload}`;
+				const getItems = `https://api.guildwars2.com/v2/items?ids=${payload}`;
+				
+				const items = await (await fetch(getItems)).json() || [];
+				const prices = await (await fetch(getPrices)).json() || [];
+				
+				materials.forEach(temp => {
+					const item = items.find(x => x.id === temp.id);
+					const price = prices.find(x => x.id === temp.id);
+					addItemPrice(item, price, 0, 0);
+				})
+				
+				itemPrices.sort((a,b) => a.name.localeCompare(b.name));
+				buildItemPriceDiv(outputDiv, colHeaders, true);
+				itemPrices.forEach(x => buildItemPriceDiv(outputDiv, x, false));
+			}
+			
+			function getData(){
+				const outputDiv = document.getElementById('output');
+				while(outputDiv?.firstChild){outputDiv.removeChild(outputDiv.firstChild);}
+				itemPrices.length = 0;
+
+				switch(activeTab){
+					case tabCostWatcher: {
+						getCostData(outputDiv);
+						return;
+					}
+					case tabMaterialStorage:{
+						getMaterialStorageData(outputDiv);
+						return;
+					}
+				}
+			}
+			
+			function setTab(sender, input){
+				const selected = document.getElementsByClassName('selectedTab');
+				Array.from(selected).forEach(x => x.classList.remove('selectedTab'));
+				sender.classList.add('selectedTab');
+
+				tabs.forEach(x => document.getElementById(x).classList.add('hidden'));
+				document.getElementById(input)?.classList.remove('hidden');
+				activeTab = input;
+				getData();
 			}
 			
 			function exportStorage(){
@@ -294,37 +384,47 @@
 	</head>
 	<body>
 		<div id="input" class="inputArea">
+			<div class="inputRow">
+				<label for='api'>API Key (for material storage):</label>
+				<input id="api" style="width:600px" 
+				onchange = "getApi();" 
+				onkeypress = "this.onchange();"
+				oninput = "this.onchange();"/>
+			</div>
+			<div id="tabSelector">
+				<button class='tabButton selectedTab' id="tabTP" onclick='setTab(this, "tabCostWatcher")'>Cost Watcher</button>
+				<button class='tabButton' id="tabStorage" onclick='setTab(this, "tabMaterialStorage")'>Full Material Storage</button>
+			</div>
+			<hr/>
+			<div id="tabContent">
+				<div id="tabCostWatcher">
+					<div class="inputRow">
+						<button id='export' onclick='exportStorage()'>Export</button>
+						||
+						<label for='upload'>Import:</label>
+						<input type='file' id='upload' name='upload' accept='txt' onchange='importStorage(this)'/>
+					</div>
+					<div class="inputRow">
+						<label for='id'>ID:</label><input type="number" id="id" min="0" max="900000" />
+						<label for='buyTarget'>Buy Target(G):</label><input type="number" id="buyTarget" min="0" max="10000" />
+						<label for='sellTarget'>Sell Target(G):</label><input type="number" id="sellTarget" min="0" max="10000" />
+						<button onclick="addItem()">Add Item</button>
+					</div>
+				</div>
+				<div id="tabMaterialStorage">
+					<label for='materialThreshold'>Material Storage Limit:</label><input type="number" id="materialThreshold" min="200" max="2000" value="1000" />
+					<button onclick="getData()">Refresh</button>
+				</div>
+			</div>
 			<div>
-				<div class="inputRow">
-					<button id='export' onclick='exportStorage()'>Export</button>
-					||
-					<label for='upload'>Import:</label>
-					<input type='file' id='upload' name='upload' accept='txt' onchange='importStorage(this)'/>
-				</div>
-				
-				<div class="inputRow">
-					<label for='api'>API Key (for material storage):</label>
-					<input id="api" style="width:600px" 
-					onchange = "getApi();" 
-					onkeypress = "this.onchange();"
-					oninput = "this.onchange();"/>
-				</div>
-				
-				<div class="inputRow">
-					<label for='id'>ID:</label><input type="number" id="id" min="0" max="900000" />
-					<label for='buyTarget'>Buy Target(G):</label><input type="number" id="buyTarget" min="0" max="10000" />
-					<label for='sellTarget'>Sell Target(G):</label><input type="number" id="sellTarget" min="0" max="10000" />
-					<button onclick="addItem()">Add Item</button>
-				</div>
 				
 			</div>
 		</div>
 		<hr/>
 		<div id="output" class='outputArea'></div>
-		
 		<script>
 			document.getElementById('api').value = localStorage.getItem('GW2TPT_API');
 			getData();
 		</script>
 	</body>
-</html>
+</html>		
