@@ -22,6 +22,7 @@
 			
 			.tableCell{
 			margin: 10px 10px;
+			text-align: center;
 			width: 100px;
 			min-width: 100px;
 			max-width: 100px;
@@ -32,6 +33,15 @@
 			.headRow{
 			font-weight:bold;
 			cursor: default;
+			}
+			
+			.headCell{
+			margin: 10px 10px;
+			text-align: center;
+			width: 100px;
+			min-width: 100px;
+			max-width: 100px;
+			white-space: wrap;
 			}
 			
 			
@@ -48,7 +58,6 @@
 			
 			.sellRow{
 			border: solid 3px green;
-			
 			}
 			
 			.inputArea{
@@ -77,9 +86,9 @@
 				sellTarget: 'Sell Target',
 				vendorValue: 'Vendor Value',
 				buyQuantity: 'Buys qty',
-				buyPrice: 'Buy $',
+				buyPrice: 'Current Top Buyer',
 				sellQuantity: 'Sells qty',
-				sellPrice: 'Sell $',
+				sellPrice: 'Current Top Seller',
 				storage: 'In Storage'
 			};
 			let apiKey = null;
@@ -157,10 +166,10 @@
 				});
 			}
 			
-			function addText(parent, text, highlight){
+			function addText(parent, text, isHead, highlight){
 				const cell = document.createElement('div');
 				cell.title = text;
-				cell.className = 'tableCell';
+				cell.className = isHead ? 'headCell':'tableCell';
 				
 				if(highlight){
 					cell.classList.add('targetAchieved');
@@ -190,14 +199,17 @@
 					document.getElementById('sellTarget').value = item.sellTarget;
 				})
 				
+				const shouldBuy = !isHead && itemPrice.sellPrice < itemPrice.buyTarget;
+				const shouldSell = !isHead && itemPrice.buyPrice > itemPrice.sellTarget;
+				
 				div.appendChild(img);
-				addText(div, itemPrice.name, 0);
-				addText(div, itemPrice.id, 0);
-				addText(div, itemPrice.sellPrice, !isHead && itemPrice.sellPrice > itemPrice.sellTarget);
-				addText(div, itemPrice.sellTarget, !isHead && itemPrice.sellPrice > itemPrice.sellTarget);
-				addText(div, itemPrice.buyPrice, !isHead && itemPrice.buyPrice < itemPrice.buyTarget);
-				addText(div, itemPrice.buyTarget, !isHead && itemPrice.buyPrice < itemPrice.buyTarget);
-				addText(div, itemPrice.storage, !isHead && itemPrice.storage > 900);
+				addText(div, itemPrice.name, isHead, 0);
+				addText(div, itemPrice.id, isHead, 0);
+				addText(div, itemPrice.buyPrice, isHead, shouldSell);
+				addText(div, itemPrice.sellTarget, isHead, shouldSell);
+				addText(div, itemPrice.sellPrice, isHead, shouldBuy);
+				addText(div, itemPrice.buyTarget, isHead, shouldBuy);
+				addText(div, itemPrice.storage, isHead, !isHead && itemPrice.storage > 950);
 				
 				if(isHead){
 					const spacer = document.createElement('div');
@@ -296,8 +308,8 @@
 				
 				<div class="inputRow">
 					<label for='id'>ID:</label><input type="number" id="id" min="0" max="900000" />
-					<label for='sellTarget'>Sell Target(G):</label><input type="number" id="sellTarget" min="0" max="10000" />
 					<label for='buyTarget'>Buy Target(G):</label><input type="number" id="buyTarget" min="0" max="10000" />
+					<label for='sellTarget'>Sell Target(G):</label><input type="number" id="sellTarget" min="0" max="10000" />
 					<button onclick="addItem()">Add Item</button>
 				</div>
 				
