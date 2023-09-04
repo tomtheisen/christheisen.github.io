@@ -10,17 +10,17 @@
 			}
 			
 			.tabButton{
-				width: 150px;
-				margin: 0;
-				background-color:#FFF;
-				color: #777;
-				border: solid 1px #777;
-				cursor: pointer;
+			width: 150px;
+			margin: 0;
+			background-color:#FFF;
+			color: #777;
+			border: solid 1px #777;
+			cursor: pointer;
 			}
 			
 			.selectedTab{
-				background-color:#ABC;
-				color: #000;
+			background-color:#ABC;
+			color: #000;
 			}
 			
 			.inputRow{
@@ -56,6 +56,7 @@
 			min-width: 100px;
 			max-width: 100px;
 			white-space: wrap;
+			cursor:pointer;
 			}
 			
 			
@@ -99,6 +100,9 @@
 			const tabMaterialStorage = 'tabMaterialStorage';
 			const tabs = [tabCostWatcher, tabMaterialStorage];
 			let activeTab = 'tabCostWatcher';
+			let sortCol = 'name';
+			let sortDir = 1;
+			
 			
 			const colHeaders = {
 				id: 'ID',
@@ -108,9 +112,9 @@
 				sellTarget: 'Sell Target',
 				vendorValue: 'Vendor Value (G)',
 				buyQuantity: 'Buys qty',
-				buyPrice: 'Current Top Buyer (G)',
+				buyPrice: 'Highest Buyer (G)',
 				sellQuantity: 'Sells qty',
-				sellPrice: 'Current Top Seller (G)',
+				sellPrice: 'Lowest Seller (G)',
 				storage: 'In Storage',
 				totalVendorValue: 'Total Vendor Value (G)',
 				totalTPValue: 'Total TP Value (G)'
@@ -193,10 +197,10 @@
 				});
 			}
 			
-			function addLink(parent, text, isHead, highlight){
+			function addLink(parent, text, highlight){
 				const cell = document.createElement('div');
 				cell.title = text;
-				cell.className = isHead ? 'headCell':'tableCell';
+				cell.className = 'tableCell';
 				
 				if(highlight){
 					cell.classList.add('targetAchieved');
@@ -213,10 +217,40 @@
 				parent.appendChild(cell);
 			}
 			
-			function addText(parent, text, isHead, highlight){
+			function sortTable(col){
+				if(col === sortCol){sortDir *= -1;}
+				else{sortCol = col; sortDir = 1;}
+
+				if(sortCol === 'name'){
+					itemPrices.sort((a,b) => a.name.localeCompare(b.name) * sortDir);
+				}
+				else{
+					itemPrices.sort((a,b) => (a[sortCol] - b[sortCol]) * sortDir);
+				}
+				
+				const outputDiv = document.getElementById('output');
+				while(outputDiv?.firstChild){outputDiv.removeChild(outputDiv.firstChild);}
+				buildHeadRow(outputDiv, colHeaders);
+				itemPrices.forEach(x => buildItemPriceDiv(outputDiv, x));
+				
+			}
+			
+			function addHead(parent, text, sort){
 				const cell = document.createElement('div');
 				cell.title = text;
-				cell.className = isHead ? 'headCell':'tableCell';
+				cell.className = 'headCell';
+				cell.addEventListener('click', () => { sortTable(sort); });
+				
+				const temp = document.createTextNode(text);
+				cell.appendChild(temp);
+				
+				parent.appendChild(cell);
+			}
+			
+			function addText(parent, text, highlight){
+				const cell = document.createElement('div');
+				cell.title = text;
+				cell.className = 'headCell';
 				
 				if(highlight){
 					cell.classList.add('targetAchieved');
@@ -228,7 +262,39 @@
 				parent.appendChild(cell);
 			}
 			
-			function buildItemPriceDiv(parent, itemPrice, isHead){
+			function buildHeadRow(parent){
+				if(!parent){return;}
+				const div = document.createElement('div');
+				div.className = 'tableRow';
+				
+				const img = document.createElement('img');
+				img.src = colHeaders.icon;
+				img.alt = colHeaders.id;
+				div.appendChild(img);
+				
+				addHead(div, colHeaders.name, 'name');
+				addHead(div, colHeaders.id, 'id');
+				addHead(div, colHeaders.buyPrice, 'buyPrice');
+				if(activeTab === tabCostWatcher){addHead(div, colHeaders.sellTarget, 'sellTarget');}
+				if(activeTab === tabCostWatcher){addHead(div, colHeaders.sellPrice, 'sellPrice');}
+				if(activeTab === tabCostWatcher){addHead(div, colHeaders.buyTarget, 'buyTarget');}
+				if(activeTab === tabMaterialStorage){addHead(div, colHeaders.vendorValue, 'vendorValue');}
+				addHead(div, colHeaders.storage, 'storage');
+				if(activeTab === tabMaterialStorage){addHead(div, colHeaders.totalTPValue, 'totalTPValue');}
+				if(activeTab === tabMaterialStorage){addHead(div, colHeaders.totalVendorValue, 'totalVendorValue');}
+				
+				
+				//spacer for button width
+				const spacer = document.createElement('div');
+				spacer.style.width = '66px';
+				div.appendChild(spacer);
+				parent.appendChild(div);
+				img.classList.add('headImg');
+				div.classList.add('headRow');
+				
+			}
+			
+			function buildItemPriceDiv(parent, itemPrice){
 				if(!parent){return;}
 				const div = document.createElement('div');
 				div.className = 'tableRow';
@@ -246,30 +312,20 @@
 					document.getElementById('sellTarget').value = item.sellTarget;
 				})
 				
-				const shouldBuy = activeTab === tabCostWatcher && !isHead && itemPrice.sellPrice < itemPrice.buyTarget;
-				const shouldSell = activeTab === tabCostWatcher && !isHead && itemPrice.buyPrice > itemPrice.sellTarget;
+				const shouldBuy = activeTab === tabCostWatcher && itemPrice.sellPrice < itemPrice.buyTarget;
+				const shouldSell = activeTab === tabCostWatcher && itemPrice.buyPrice > itemPrice.sellTarget;
 				
 				div.appendChild(img);
-				addLink(div, itemPrice.name, isHead, 0);
-				addText(div, itemPrice.id, isHead, 0);
-				addText(div, itemPrice.buyPrice, isHead, shouldSell);
-				if(activeTab === tabCostWatcher){addText(div, itemPrice.sellTarget, isHead, shouldSell);}
-				if(activeTab === tabCostWatcher){addText(div, itemPrice.sellPrice, isHead, shouldBuy);}
-				if(activeTab === tabCostWatcher){addText(div, itemPrice.buyTarget, isHead, shouldBuy);}
-				if(activeTab === tabMaterialStorage){addText(div, itemPrice.vendorValue, isHead, shouldSell);}
-				addText(div, itemPrice.storage, isHead, activeTab === tabCostWatcher && !isHead && itemPrice.storage > 950);
-				if(activeTab === tabMaterialStorage){addText(div, itemPrice.totalTPValue, isHead);}
-				if(activeTab === tabMaterialStorage){addText(div, itemPrice.totalVendorValue, isHead);}
-				
-				if(isHead){
-					const spacer = document.createElement('div');
-					spacer.style.width = '66px';
-					div.appendChild(spacer);
-					parent.appendChild(div);
-					img.classList.add('headImg');
-					div.classList.add('headRow');
-					return;
-				}
+				addLink(div, itemPrice.name, 0);
+				addText(div, itemPrice.id, 0);
+				addText(div, itemPrice.buyPrice, shouldSell);
+				if(activeTab === tabCostWatcher){addText(div, itemPrice.sellTarget, shouldSell);}
+				if(activeTab === tabCostWatcher){addText(div, itemPrice.sellPrice, shouldBuy);}
+				if(activeTab === tabCostWatcher){addText(div, itemPrice.buyTarget, shouldBuy);}
+				if(activeTab === tabMaterialStorage){addText(div, itemPrice.vendorValue, shouldSell);}
+				addText(div, itemPrice.storage, activeTab === tabCostWatcher && itemPrice.storage > 950);
+				if(activeTab === tabMaterialStorage){addText(div, itemPrice.totalTPValue);}
+				if(activeTab === tabMaterialStorage){addText(div, itemPrice.totalVendorValue);}
 				
 				if(activeTab === tabCostWatcher){
 					const btn = document.createElement('button');
@@ -308,8 +364,8 @@
 				})
 				
 				itemPrices.sort((a,b) => a.name.localeCompare(b.name));
-				buildItemPriceDiv(outputDiv, colHeaders, true);
-				itemPrices.forEach(x => buildItemPriceDiv(outputDiv, x, false));
+				buildHeadRow(outputDiv, colHeaders);
+				itemPrices.forEach(x => buildItemPriceDiv(outputDiv, x));
 			}
 			
 			async function getMaterialStorageData(outputDiv){
@@ -340,10 +396,10 @@
 					const item = items.find(x => x.id === temp.id);
 					const price = prices.find(x => x.id === temp.id);
 					addItemPrice(item, price, 0, 0);
-				})
+				});
 				
 				itemPrices.sort((a,b) => a.name.localeCompare(b.name));
-				buildItemPriceDiv(outputDiv, colHeaders, true);
+				buildHeadRow(outputDiv, colHeaders, true);
 				itemPrices.forEach(x => buildItemPriceDiv(outputDiv, x, false));
 			}
 			
@@ -351,7 +407,10 @@
 				const outputDiv = document.getElementById('output');
 				while(outputDiv?.firstChild){outputDiv.removeChild(outputDiv.firstChild);}
 				itemPrices.length = 0;
-
+				sortCol = 'name';
+				sortDir = 1;
+				
+				
 				switch(activeTab){
 					case tabCostWatcher: {
 						getCostData(outputDiv);
@@ -368,7 +427,7 @@
 				const selected = document.getElementsByClassName('selectedTab');
 				Array.from(selected).forEach(x => x.classList.remove('selectedTab'));
 				sender.classList.add('selectedTab');
-
+				
 				tabs.forEach(x => document.getElementById(x).classList.add('hidden'));
 				document.getElementById(input)?.classList.remove('hidden');
 				activeTab = input;
