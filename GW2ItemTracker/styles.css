@@ -1,0 +1,112 @@
+body{
+	background-color: #000;
+	color: #ABC;
+}
+
+img{
+	height: 32px;
+	width: 32px;
+	cursor: pointer;
+}
+
+button {
+	background-color: #111;
+	color: #AAA;
+}
+
+a:link{
+	color: #ABA;
+}
+a:hover{
+	color: #ABA;
+}
+a:visited{
+	color: #ABA;
+}
+
+.headRow img{
+	height: 23px;
+	width: 32px;
+	padding-top: 8px;
+	cursor: default;
+}
+
+.tabButton{
+	width: 150px;
+	margin: 0;
+	background-color:#000;
+	color: #456;
+	border: solid 1px #777;
+	cursor: pointer;
+}
+
+.selectedTab{
+	background-color:#ABC;
+	color: #000;
+}
+
+.inputRow{
+	margin: 10px 0;
+}
+
+.tableRow{
+	margin: 10px 0;
+	display: flex;
+	min-width: 900px;
+}
+
+.tableCell{
+	margin: 10px 10px;
+	text-align: center;
+	width: 100px;
+	min-width: 100px;
+	max-width: 100px;
+	overflow:hidden;
+	white-space:nowrap;
+}
+
+.headRow{
+	font-weight:bold;
+	cursor: default;
+	border-bottom: solid 1px #777;
+	background-color: #000;
+}
+
+.headCell{
+	margin: 10px 10px;
+	text-align: center;
+	width: 100px;
+	min-width: 100px;
+	max-width: 100px;
+	white-space: wrap;
+	cursor:pointer;
+}
+
+.targetAchieved{
+	background-color: #373;
+	color: #CCC;
+}
+
+.sellRow{
+	border: solid 3px green;
+}
+
+.inputArea{
+	min-width: 777px;
+	position: fixed;
+	background-color: #111;
+	width: 100%;
+	top: 0;
+	left: 0;
+	padding: 10px;
+	border-bottom: solid 1px #777;
+	height: 90px;
+}
+
+.outputArea{
+	margin-top: 117px;
+}
+
+.hidden{
+	display:none;
+}
