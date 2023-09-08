@@ -6,7 +6,7 @@ const colTypes = {
 
 const columns = {
 	id:{id: 'id', type: colTypes.text, head: 'ID'},
-	name:{id: 'name', type: colTypes.link, head: 'Name'},
+	name:{id: 'name', type: colTypes.link, format:() => {return 'linkCell';}, head: 'Name', headClass: 'wideHeadCell'},
 	icon:{id: 'icon', type: colTypes.img, head: 'https://wiki.guildwars2.com/images/thumb/d/db/Guild_Wars_2_logo.svg/1200px-Guild_Wars_2_logo.svg.png'},
 	buyTarget:{id: 'buyTarget', type: colTypes.text, head: 'Buy Target', 
 		format: (row) => {return activeTab === 0 && row.sellPrice < row.buyTarget ? 'targetAchieved' : ''}},
@@ -21,11 +21,13 @@ const columns = {
 	vendorValue:{id: 'vendorValue', type: colTypes.text, head: 'Vendor Value (G)'},
 	storage:{id: 'storage', type: colTypes.text, head: 'In Storage'},
 	bank:{id: 'bank', type: colTypes.text, head: 'In Bank'},
-	inventory:{id: 'inventory', type: colTypes.text, head: 'Inventory'},
+	inventory:{id: 'inventory', type: colTypes.text, head: 'Count'},
 	bag:{id: 'bag', type: colTypes.text, head: 'In Bags'},
+	wallet:{id: 'value', type: colTypes.text, head: 'In Wallet'},
 	totalVendorValue:{id: 'totalVendorValue', type: colTypes.text, head: 'Total Vendor Value (G)'},
 	totalTPValue:{id: 'totalTPValue', type: colTypes.text, head: 'Total TP Value (G)'}
 }
+
 const tabs = [
 	{
 		id: 'tabCostWatcher', 
@@ -61,7 +63,7 @@ const tabs = [
 	},
 	{
 		id: 'tabBank',
-		text: 'Bank Value',
+		text: 'Bank',
 		data: getBankData,
 		height: 55,
 		columns: [
@@ -77,7 +79,7 @@ const tabs = [
 	},
 	{
 		id: 'tabSharedInventory',
-		text: 'Inventory Value',
+		text: 'Shared Inventory',
 		data: getSharedInventory,
 		height: 25,
 		columns: [
@@ -92,10 +94,10 @@ const tabs = [
 		]
 	},
 	{
-		id: 'tabSharedInventory',
-		text: 'Character Value',
-		data: getBags,
-		height: 60,
+		id: 'tabBags',
+		text: 'Character Bags',
+		data: getCharacters,
+		height: 80,
 		columns: [
 			columns.icon, 
 			columns.name, 
@@ -108,9 +110,28 @@ const tabs = [
 		]
 	},
 	{
+		id: 'tabWallet',
+		text: 'Wallet',
+		data: getWallet,
+		height: 25,
+		columns: [
+			columns.icon, 
+			columns.name, 
+			columns.id, 
+			columns.wallet
+			]
+	},
+	{
+		id: 'tabCrafting',
+		text: 'Crafting',
+		data: () => {},
+		height: 55,
+		columns: []
+	},
+	{
 		id: 'tabSettings',
 		text: 'Settings',
-		data: () => {},
+		data: getTokenInfo,
 		height: 55,
 		columns: []
 	}	
@@ -118,22 +139,6 @@ const tabs = [
 let activeTab = 0;
 let sortCol = 'name';
 let sortDir = 1;
-
-const colHeaders = {
-	id: 'ID',
-	name: 'Name',
-	icon: 'https://wiki.guildwars2.com/images/thumb/d/db/Guild_Wars_2_logo.svg/1200px-Guild_Wars_2_logo.svg.png',
-	buyTarget: 'Buy Target',
-	sellTarget: 'Sell Target',
-	vendorValue: 'Vendor Value (G)',
-	buyQuantity: 'Buys qty',
-	buyPrice: 'Highest Buyer (G)',
-	sellQuantity: 'Sells qty',
-	sellPrice: 'Lowest Seller (G)',
-	storage: 'In Storage',
-	totalVendorValue: 'Total Vendor Value (G)',
-	totalTPValue: 'Total TP Value (G)'
-};
 
 function sortTable(col){
 	if(col === sortCol){sortDir *= -1;}
@@ -148,15 +153,17 @@ function sortTable(col){
 	
 	const outputDiv = document.getElementById('output');
 	while(outputDiv?.firstChild){outputDiv.removeChild(outputDiv.firstChild);}
-	buildHeadRow(outputDiv, colHeaders);
+	buildHeadRow(outputDiv);
 	itemPrices.forEach(x => buildItemPriceRow(outputDiv, x));
 }
 
-function addHead(parent, text, sort){
+function addHead(parent, text, sort, headClass){
 	const cell = document.createElement('div');
 	cell.title = text;
 	cell.className = 'headCell';
 	cell.addEventListener('click', () => { sortTable(sort); });
+	
+	if(headClass){cell.classList.add(headClass);}
 	
 	const temp = document.createTextNode(text);
 	cell.appendChild(temp);
@@ -166,6 +173,7 @@ function addHead(parent, text, sort){
 
 function buildHeadRow(parent){
 	if(!parent){return;}
+	if(activeTab === 4 || activeTab === 7){return;}
 	const div = document.createElement('div');
 	div.classList.add('tableRow');
 	div.classList.add('headRow');
@@ -178,7 +186,7 @@ function buildHeadRow(parent){
 			div.appendChild(img);
 		}
 		else{
-			addHead(div, col.head, col.id);
+			addHead(div, col.head, col.id, col.headClass);
 		}
 	});
 	
@@ -220,11 +228,14 @@ function addImg(parent, src, alt){
 	})
 }
 
-function addLink(parent, text){
+function addLink(parent, text, className){
 	const cell = document.createElement('div');
 	cell.title = text;
-	cell.className = 'tableCell';
-	
+	cell.className = 'tableCell wideTableCell';
+	if(className){
+		cell.classList.add(className);
+	}
+
 	const temp = document.createElement('a');
 	temp.appendChild(document.createTextNode(text));
 	temp.title = text;
@@ -241,10 +252,6 @@ function buildItemPriceRow(parent, itemPrice){
 	const div = document.createElement('div');
 	div.className = 'tableRow';
 	
-	const shouldBuy = activeTab === 0 && itemPrice.sellPrice < itemPrice.buyTarget;
-	const shouldSell = activeTab === 0 && itemPrice.buyPrice > itemPrice.sellTarget;
-	const maxStorage = activeTab === 0 && itemPrice.storage > 950;
-	
 	tabs[activeTab].columns.forEach(col => {
 		const value = itemPrice[col.id];
 		
@@ -252,7 +259,6 @@ function buildItemPriceRow(parent, itemPrice){
 			col.type.build(div, value, itemPrice.id);
 		}
 		else{
-			
 			const className = col.format ? col.format(itemPrice) : '';
 			col.type.build(div, value, className);
 		}
@@ -265,6 +271,76 @@ function buildItemPriceRow(parent, itemPrice){
 	}
 	
 	parent.appendChild(div);
+}
+
+function buildBagRow(parent, text, bag){
+	if(!parent){return;}
+	const div = document.createElement('div');
+	div.classList.add('tableRow');
+	div.classList.add('headRow');
+	
+	addText(div, text);
+	addImg(div, bag.icon, bag.name);
+	addText(div, bag.details.size);
+	addText(div, `Hidden: ${bag.details.no_sell_or_sort}`);
+	
+	parent.appendChild(div);
+	
+	const bagItemSpace = document.createElement('div');
+	parent.appendChild(bagItemSpace);
+	return bagItemSpace;
+}
+
+function buildBag(parent, items, itemData){
+	//name, image, quantity
+	items.forEach((item, index) => {
+		if(!item){return;}
+		const div = document.createElement('div');
+		div.id = `${parent.id}_item_${index}`;
+		div.className = 'bagItem';
+		
+		const temp = itemData.find(x => x?.id === item?.id);
+		buildBagItem(div, temp, item.count);
+		parent.appendChild(div);
+	});
+}
+
+function buildSearchResults(parent, hits){
+	hits.forEach(x => {
+		const div = document.createElement('div');
+		div.className = 'tableRow';
+		
+		addText(div, x.character.name);
+		addImg(div, x.item.icon, x.item.name);
+		addText(div, x.item.name, 'wideTableCell');
+		addText(div, x.count);
+		
+		parent.appendChild(div);
+	})
+}
+
+function buildBagItem(parent, item, qty){
+	addImg(parent, item.icon, item.name);
+	parent.appendChild(document.createElement('br'));
+	parent.appendChild(document.createTextNode(qty));
+	parent.appendChild(document.createElement('br'));
+	parent.appendChild(document.createTextNode(item.name));
+}
+
+function buildTokenInfo(parent, tokenInfo){
+	console.log(tokenInfo);
+	addText(parent, `Name:${tokenInfo?.name}`);
+	addText(parent, `Permissions:`);
+	
+	if(!tokenInfo?.permissions){return;}
+	
+	const ul = document.createElement('ul');
+	tokenInfo.permissions.forEach(x => {
+		const li = document.createElement('li');
+		li.appendChild(document.createTextNode(x));
+		ul.appendChild(li);
+	});
+	parent.appendChild(ul);
 }
 
 function buildTabs(){
@@ -281,8 +357,6 @@ function buildTabs(){
 		
 		parent.appendChild(btn);
 	});
-	
-	
 }
 
 //UI Events:
@@ -312,6 +386,7 @@ function addItem(){
 }
 
 function setTab(sender, input){
+	if(isLoading){return;}
 	const selected = document.getElementsByClassName('selectedTab');
 	Array.from(selected).forEach(x => x.classList.remove('selectedTab'));
 	tabs.forEach(x => document.getElementById(x.id).classList.add('hidden'));
@@ -323,6 +398,18 @@ function setTab(sender, input){
 	document.getElementById('output').style.marginTop = `${tabs[activeTab].height+27}px`;
 	
 	getData();
+}
+
+function bagsFilter(event){
+	if(event.key === "Enter"){
+		searchBags();
+	}
+}
+
+function filterKeyPress(event){
+	if(event.key === "Enter"){
+		getData();
+	}
 }
 
 function exportStorage(){

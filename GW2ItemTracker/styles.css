@@ -24,6 +24,12 @@ a:visited{
 	color: #ABA;
 }
 
+.loading{
+	position:fixed;
+	bottom:0;
+	right:0;
+}
+
 .headRow img{
 	height: 23px;
 	width: 32px;
@@ -65,6 +71,16 @@ a:visited{
 	white-space:nowrap;
 }
 
+.linkCell{
+	text-align: left;
+}
+
+.wideTableCell{
+	width: 200px;
+	min-width: 200px;
+	max-width: 200px;
+}
+
 .headRow{
 	font-weight:bold;
 	cursor: default;
@@ -80,6 +96,12 @@ a:visited{
 	max-width: 100px;
 	white-space: wrap;
 	cursor:pointer;
+}
+
+.wideHeadCell{
+	width: 200px;
+	min-width: 200px;
+	max-width: 200px;
 }
 
 .targetAchieved{
@@ -105,6 +127,22 @@ a:visited{
 
 .outputArea{
 	margin-top: 117px;
+}
+
+.bag{
+	display: flex;
+	flex-wrap: wrap;
+	width: 768px;
+}
+
+.bagItem{
+	display: block;
+	width: 64px;
+	min-width: 64px;
+	font-size: 8pt;
+	white-space: break-spaces;
+	text-align: center;
+	border: solid 1px #222;
 }
 
 .hidden{

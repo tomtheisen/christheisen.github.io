@@ -1,22 +1,22 @@
 //Future functionality:
-//https://wiki.guildwars2.com/wiki/API:2/account/inventory
-//https://wiki.guildwars2.com/wiki/API:2/v2/characters?ids=all
-//https://wiki.guildwars2.com/wiki/API:2/characters/:id/inventory
 //https://wiki.guildwars2.com/wiki/API:2/account/recipes
-//https://wiki.guildwars2.com/wiki/API:2/account/wallet
 //https://wiki.guildwars2.com/wiki/API:2/recipes
-//https://wiki.guildwars2.com/wiki/API:2/tokeninfo
 
-//Loading thing.
+//cache result calls in session storage
+	//add a clear cache button in settings.
 
 const storageKey = 'GW2TPT_IP';
 const apiStorageKey = 'GW2TPT_API';
+const root='https://api.guildwars2.com/v2/';
 const IdPrices = JSON.parse(localStorage.getItem(storageKey)) || [];
 const itemPrices = [];
 let materials = [];
 let bank = [];
 let inventory = [];
+let characters = [];
+let isLoading = false;
 let apiKey = null;
+let tokenInfo = null;
 
 //data management
 function addIdPrice(id, buyTarget, sellTarget){
@@ -106,17 +106,17 @@ function chunkJoin(input, chunkSize=200){
 
 //Call API
 async function getItems(payload){
-	const getItems = `https://api.guildwars2.com/v2/items?ids=${payload}`;
+	const getItems = `${root}items?ids=${payload}`;
 	const items = await (await fetch(getItems)).json() || [];
 	return items;
 }
 async function getPrices(payload){
-	const getPrices = `https://api.guildwars2.com/v2/commerce/prices?ids=${payload}`;
+	const getPrices = `${root}commerce/prices?ids=${payload}`;
 	const prices = await (await fetch(getPrices)).json() || [];
 	return prices;
 }
 
-async function getCostData(outputDiv){
+async function getCostData(){
 	const ids = IdPrices.map(x => x.id).filter(x => x > 0);
 	if(ids.length === 0){return;}
 	
@@ -125,7 +125,7 @@ async function getCostData(outputDiv){
 	const prices = await getPrices(payload);
 	
 	const authToken=getApi();
-	const getStorage = `https://api.guildwars2.com/v2/account/materials?v=2021-07-24T00%3A00%3A00Z&access_token=${authToken}`;
+	const getStorage = `${root}account/materials?access_token=${authToken}`;
 	
 	if(!!authToken){
 		const tempMaterials = await (await fetch(getStorage)).json() || [];
@@ -139,9 +139,9 @@ async function getCostData(outputDiv){
 	})
 }
 
-async function getMaterialStorageData(outputDiv){
+async function getMaterialStorageData(){
 	const authToken=getApi();
-	const getStorage = `https://api.guildwars2.com/v2/account/materials?v=2021-07-24T00%3A00%3A00Z&access_token=${authToken}`;
+	const getStorage = `${root}account/materials?access_token=${authToken}`;
 	if(!authToken){
 		alert('No API token');
 		return;
@@ -156,7 +156,7 @@ async function getMaterialStorageData(outputDiv){
 	const limit = Number(document.getElementById('materialThreshold').value);
 	materials = tempMaterials.filter(x => x.count >= limit);
 	if(materials.length < 1){return;}
-
+	
 	const itemIds = materials.map(x => x.id);
 	const itemPayloads = chunkJoin(itemIds);
 	let items = [];
@@ -180,14 +180,15 @@ async function getMaterialStorageData(outputDiv){
 	});
 }
 
-async function getBankData(outputDiv){
+async function getBankData(){
 	const authToken=getApi();
-	const getBank = `https://api.guildwars2.com/v2/account/bank?v=2021-07-24T00%3A00%3A00Z&access_token=${authToken}`;
+	const getBank = `${root}account/bank?access_token=${authToken}`;
 	if(!authToken){
 		alert('No API token');
 		return;
 	}
 	
+	const filter = document.getElementById('bankFilter').value.toLowerCase();
 	const tempBank = await (await fetch(getBank)).json() || [];
 	
 	if(!Array.isArray(tempBank)){return;}
@@ -202,7 +203,16 @@ async function getBankData(outputDiv){
 	const itemPayloads = chunkJoin(itemIds);
 	let items = [];
 	for(const payload of itemPayloads){
-		const tempItems = await getItems(payload);
+		let tempItems = (await getItems(payload)).filter(x => x);
+		if(filter){
+			tempItems = tempItems.filter(x => 
+				x.name.toLowerCase().includes(filter) || 
+				x.type.toLowerCase().includes(filter) ||
+				x.rarity.toLowerCase().includes(filter) ||
+				(x.details?.type && x.details.type.toLowerCase().includes(filter))
+				
+			);
+		}
 		items = items.concat(tempItems);
 	}
 	
@@ -217,27 +227,28 @@ async function getBankData(outputDiv){
 	bank.forEach(temp => {
 		const item = items.find(x => x.id === temp.id);
 		const price = prices.find(x => x.id === temp.id);
+		if(!item){return;}
 		addItemPrice(item, price);
 	});
 }
 
-async function getSharedInventory(outputDiv){
+async function getSharedInventory(){
 	const authToken=getApi();
-	const getStorage = `https://api.guildwars2.com/v2/account/inventory?v=2021-07-24T00%3A00%3A00Z&access_token=${authToken}`;
+	const getStorage = `${root}account/inventory?access_token=${authToken}`;
 	if(!authToken){
 		alert('No API token');
 		return;
 	}
-
+	
 	const tempInventory = await (await fetch(getStorage)).json() || [];
 	if(!Array.isArray(tempInventory)){return;}
 	inventory = tempInventory.filter(x => x).filter(x => x.id !== 78599);//filter out level 80 boost, it breaks things.
-
+	
 	const itemPayload = inventory.map(x => x.id).join(',');
 	const pricesPayload = inventory.filter(x => !x.binding).map(x => x.id).join(',');
 	const items = itemPayload ? await getItems(itemPayload) : [];
 	const prices = pricesPayload ? await getPrices(pricesPayload) : [];
-
+	
 	inventory.forEach(temp => {
 		const item = items.find(x => x.id === temp.id);
 		const price = prices.find(x => x.id === temp.id);
@@ -246,23 +257,149 @@ async function getSharedInventory(outputDiv){
 }
 
 async function getCharacters(){
-	//make dropdown with characters for inventory
+	const authToken = getApi();
+	const getChars = `${root}characters?ids=all&access_token=${authToken}`;
+	const chars = await (await fetch(getChars)).json() || [];
+	if(!Array.isArray(chars)){return;}
+	characters = chars;
+	
+	const ddl = document.getElementById('ddlCharacters');
+	characters.forEach((x, index) => {
+		var opt = document.createElement('option');
+		opt.value = index;
+		opt.innerHTML = x.name;
+		ddl.appendChild(opt);
+	});
+	
+	getBags();
 }
 
-async function getBags(outputDiv){
+async function getBags(){
+	document.getElementById('itemSearch').value = null;
+	const outputDiv = document.getElementById('output');
+	while(outputDiv?.firstChild){outputDiv.removeChild(outputDiv.firstChild);}
 	
+	const ddl = document.getElementById('ddlCharacters');
+	const selectedChar = characters[ddl.value];
+	const bags = selectedChar.bags;
+	
+	const payload = bags.filter(x => x).map(x => x.id).join(',');
+	const bagData = (await getItems(payload));
+	
+	bags.forEach(async (bag, index) => {
+		if(!bag?.id){return;} 
+		
+		const bagType = bagData.find(x => x.id === bag.id);
+		const bagDiv = buildBagRow(outputDiv, `Bag ${index}`, bagType);
+		bagDiv.id = `bag${ddl.value}_${index}`;
+		bagDiv.className = 'bag';
+		
+		//get item data
+		const bagItemsPayload = bag.inventory.filter(x => x).map(x => x.id).join(',');
+		if(!bagItemsPayload){return;}
+		const bagItems = (await getItems(bagItemsPayload));
+		
+		buildBag(bagDiv, bag.inventory, bagItems);
+	});
+}
+
+async function searchBags(){
+	const search = document.getElementById('itemSearch').value.toLowerCase();
+	if(!search){return;}
+	
+	document.getElementById('ddlCharacters').value = null;
+	
+	//get list of all item name && id
+	let itemIds = [];
+	characters.forEach(c => {
+		c.bags.forEach(b => {
+			const tempIds = b?.inventory.filter(x => x).map(x => x.id);
+			itemIds = itemIds.concat(tempIds);
+		});
+	});
+	itemIds = [...new Set(itemIds)];
+	const itemPayloads = chunkJoin(itemIds);
+	
+	//get ids for items that match
+	let items = [];
+	for(const payload of itemPayloads){
+		let tempItems = (await getItems(payload));
+		tempItems = tempItems.filter(x => 
+			x.name.toLowerCase().includes(search) || 
+			x.type.toLowerCase().includes(search) ||
+			x.rarity.toLowerCase().includes(search) ||
+		(x.details?.type && x.details.type.toLowerCase().includes(search)));
+		
+		tempItems = tempItems.map(x => 
+		({id:x.id, name: x.name, type: x.type, icon: x.icon}));
+		
+		items = items.concat(tempItems);
+	}
+	
+	const matchIds = items.map(x => x.id);
+	const hits = [];
+	//search bags for ids
+	characters.forEach(c => {
+		c.bags.forEach(b => {
+			const tempHits = b?.inventory.filter(x => x && matchIds.includes(x.id));
+			if(!tempHits){return;}
+			
+			tempHits.forEach(h => {
+				const item = items.find(x => x.id === h.id);
+				hits.push({character: c, bag: b, item: item, count: h.count});
+			});
+			
+		});
+	});
+	
+	const outputDiv = document.getElementById('output');
+	while(outputDiv?.firstChild){outputDiv.removeChild(outputDiv.firstChild);}
+	
+	buildSearchResults(outputDiv, hits);
+}
+
+async function getWallet(){
+	const authToken = getApi();
+	const get = `${root}account/wallet?access_token=${authToken}`;
+	const wallet = await (await fetch(get)).json() || [];
+	const currencies = await (await fetch(`${root}currencies?ids=all`)).json() || [];
+
+	console.log(wallet, currencies);
+	wallet.forEach(x => {
+		const currency = currencies.find(c => x.id === c.id);
+		itemPrices.push({...x, ...currency});
+	});
+}
+
+async function getTokenInfo(){
+	const authToken = getApi();
+	const get = `${root}tokeninfo?access_token=${authToken}`;
+
+	tokenInfo = await (await fetch(get)).json() || {};
+}
+
+function populateData(){
+	const outputDiv = document.getElementById('output');
+	while(outputDiv?.firstChild){outputDiv.removeChild(outputDiv.firstChild);}
+	
+	itemPrices.sort((a,b) => a.name.localeCompare(b.name));
+	buildHeadRow(outputDiv);
+	itemPrices.forEach(x => buildItemPriceRow(outputDiv, x, false));
+	
+	if(activeTab === 7){buildTokenInfo(outputDiv, tokenInfo);}
 }
 
 async function getData(){
-	const outputDiv = document.getElementById('output');
-	while(outputDiv?.firstChild){outputDiv.removeChild(outputDiv.firstChild);}
+	isLoading = true;
+	document.getElementById('loading').classList.remove('hidden');
 	itemPrices.length = 0;
+	populateData();
 	sortCol = 'name';
 	sortDir = 1;
 	
-	await tabs[activeTab].data(outputDiv);
+	await tabs[activeTab].data();
 	
-	itemPrices.sort((a,b) => a.name.localeCompare(b.name));
-	buildHeadRow(outputDiv, colHeaders, true);
-	itemPrices.forEach(x => buildItemPriceRow(outputDiv, x, false));
+	populateData();
+	document.getElementById('loading').classList.add('hidden');
+	isLoading = false;
 }

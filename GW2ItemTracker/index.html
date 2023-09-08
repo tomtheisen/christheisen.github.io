@@ -9,6 +9,9 @@
 	</head>
 	<body>
 		<div id="input" class="inputArea">
+			<div id="loading" class='loading hidden'>
+				Loading...
+			</div>
 			<div id="tabSelector">
 			</div>
 			<hr/>
@@ -34,10 +37,27 @@
 					<label for='chkHideNoPriceStorage'>Hide materials with no TP listings:</label><input type="checkbox" id="chkHideNoPriceStorage" checked />
 				</div>
 				<div id="tabBank" class="hidden">
+					<label for='bankFilter'>Filter:</label><input type="text" id="bankFilter" onkeypress="filterKeyPress(event)"/>
+					|
 					<label for='chkHideNoPriceBank'>Hide items with no TP listings:</label><input type="checkbox" id="chkHideNoPriceBank" checked />
+					|
 					<button onclick="getData()">Refresh</button>
+					
 				</div>
-				<div id="tabSharedInventory">
+				<div id="tabSharedInventory" class="hidden">
+				</div>
+				<div id="tabBags" class="hidden">
+					<label for='ddlCharacters'>Characters:</label>
+					<select id='ddlCharacters' onchange="getBags()"></select>
+					<br/>
+					<label for='itemSearch'>Find Item:</label><input type="text" id="itemSearch" onkeypress="bagsFilter(event)"/>
+					<button onclick="searchBags('TBD')">Search</button>
+					
+				</div>
+				<div id="tabWallet" class="hidden">
+				</div>
+				<div id="tabCrafting" class="hidden">
+					In Progress
 				</div>
 				<div id="tabSettings" class="hidden">
 					<label for='api'>API Key:</label>
