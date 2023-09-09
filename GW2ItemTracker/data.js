@@ -60,6 +60,10 @@ function addItemPrice(item, price, buyTarget, sellTarget){
 	let ownedInventory = null;
 	let owned = 0;
 	switch(activeTab){
+		case 0: {
+			ownedMat = materials ? materials.find(x => x.id === item.id) : null;
+			owned = ownedMat; 
+		}
 		case 1: {
 			ownedMat = materials ? materials.find(x => x.id === item.id) : null;
 			owned = ownedMat; 
