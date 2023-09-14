@@ -62,6 +62,7 @@ function addItemPrice(item, price, buyTarget, sellTarget){
 	switch(activeTab){
 		case 0: {
 			ownedMat = materials ? materials.find(x => x.id === item.id) : null;
+			ownedBank = bank ? bank.find(x => x.id === item.id) : null;
 			owned = ownedMat; 
 		}
 		case 1: {
