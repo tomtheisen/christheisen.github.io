@@ -1,0 +1,86 @@
+quarks
+http://hyperphysics.phy-astr.gsu.edu/hbase/Particles/quark.html#c1
+	-Up
+		-Decay into down
+	-Down
+		-Decay into up
+	-Charm
+		-decay into strange
+	-Strange
+		-decay into up
+	-Top
+		-decay into bottom
+	-Bottom
+		-decay into up
+
+
+Leptons
+http://hyperphysics.phy-astr.gsu.edu/hbase/Particles/lepton.html#c7
+	-Electron / Neutrino (Electron)
+		-Used to make matter
+	-Muon / Neutrino (Muon) 
+		-decay into electron
+	-Tau / Neutrino (Tau)
+		-decay into muon
+
+Baryons (a bunch more, but only use two in game)
+	-Proton : uud
+	-Neuton : ddu
+
+Atomic
+	-made of protons, neutrons, electrons
+	Elements: https://periodictableguide.com/periodic-table-of-elements/#Periodic-Table-of-Elements
+	Isotopes: https://periodictable.com/Properties/A/KnownIsotopes.html
+
+Molecule
+	-Made from atoms
+
+MAX_SAFE_INT=9,007,199,254,740,991
+~ 9e15
+
+Possible Sizes/Scales:	
+https://www.schoolmykids.com/learn/calculators/earth-mass-to-teragram-conversion-weight-and-mass-converter-calculator
+
+Daltons (Da || u)
+	-1/12 of a carbon-12 https://en.wikipedia.org/wiki/Dalton_(unit)
+	-~atomic mass
+	
+nanogram (ng)
+	-1ng ~ 6e14Da
+
+Moles
+	-6e23 Molecules
+	-mass ~ atomic weight in grams
+Kilogram (kg)
+	-Mole Qty varies based on molecule mass (moles * atomic mass = grams)
+	-1e12 ng
+
+Exagram (Eg)
+	-idk, something between kg and Earth Mass || Solar Mass	
+	-1e15 kg
+
+Earth Mass (M⊕) - possibly skip this one
+	~6e24 kg
+
+Solar Mass (M☉)
+	~2e30 kg
+	~1.4e15 Eg
+	~3.3e5 M⊕
+Larger?
+	-Smallest red dwarf = .0075 M☉ || 1e13 Eg 
+	-Largest known star = 226 M☉
+	-Largest known supermassive black hole = 1e11 M☉
+	-Large galaxy mass ~2.3e14 M☉
+	-Milky way ~2e11 stars
+
+
+generate area
+	-starts with quarks (just up and down), and leptons (just electrons) 
+	-manual generation by clicking on it (if have the components; quarks/leptons are free)
+	-can buy/upgrade generators for item with item (Up Quark generator costs Up Quarks, etc...)
+	-has a clickable || hoverable '?' to display info in a modal
+discover area
+	-can put generated materials together to make new materials
+	-once discovered it is available in the generate area
+
+
