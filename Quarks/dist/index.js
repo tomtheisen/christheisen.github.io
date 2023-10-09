@@ -920,23 +920,6 @@ var MassUnits;
   MassUnits2["Eg"] = "Eg";
   MassUnits2["MO"] = "M\u2609";
 })(MassUnits || (MassUnits = {}));
-function visibleGroups() {
-  return data.filter((x) => x.u);
-}
-function visibleItems(groupId) {
-  const group = visibleGroups().find((x) => x.i === groupId);
-  if (!group) {
-    return [];
-  }
-  return group.l.filter((x) => x.u);
-}
-function visibleFlavors(groupId, itemId) {
-  const item = visibleItems(groupId).find((x) => x.i === itemId);
-  if (!item) {
-    return [];
-  }
-  return item.f;
-}
 var data = [{
   i: 0,
   n: "Subatomic",
@@ -1016,11 +999,11 @@ var data = [{
 }, {
   i: 1,
   n: "Atomic",
-  u: false,
+  u: true,
   l: [{
     i: 0,
     n: "Hydrogen",
-    u: false,
+    u: true,
     g: 3,
     info: "Hydrogen is the most common element in the universe, made with only a single proton. There are two stable isotopes.",
     f: [{
@@ -1064,7 +1047,7 @@ var data = [{
   }, {
     i: 1,
     n: "Helium",
-    u: false,
+    u: true,
     g: 3,
     info: "Helium has two stable isotopes. Helium-3 is much more rare than the normal Helium-4.",
     f: [{
@@ -1116,70 +1099,67 @@ var data = [{
 // out2/index.js
 var _frag;
 var model = track({
+  data,
   activeTab: 0,
-  activeGroup: -1,
-  activeItem: -1,
-  activeFlavor: -1,
+  activeGroup: null,
+  activeItem: null,
+  activeFlavor: null,
   inventory: [],
   generators: []
 });
-function currentFlavor() {
-  return data.find((x) => x.i === model.activeGroup)?.l.find((x) => x.i === model.activeItem)?.f.find((x) => x.i === model.activeFlavor);
-}
 function setTab(input) {
+  console.log(data, model.data);
   model.activeTab = input;
-  model.activeGroup = -1;
-  model.activeItem = -1;
-  model.activeFlavor = -1;
+  model.activeGroup = null;
+  model.activeItem = null;
+  model.activeFlavor = null;
 }
 function setGroup(input) {
   model.activeGroup = input;
-  model.activeItem = -1;
-  model.activeFlavor = -1;
-  console.log("Group", input, visibleItems(model.activeGroup));
+  model.activeItem = null;
+  model.activeFlavor = null;
+  console.log("Group", input);
 }
 function setItem(input) {
-  model.activeItem = input;
-  model.activeFlavor = -1;
-  console.log("Item", input, visibleFlavors(model.activeGroup, model.activeItem));
+  const item = model.activeGroup?.l.find((x) => x.u && x.i === input);
+  model.activeItem = item;
+  model.activeFlavor = null;
+  console.log("Item", input, item);
 }
 function setFlavor(input) {
-  model.activeFlavor = input;
-  const flavor = currentFlavor();
+  const flavor = model.activeItem?.f.find((x) => x.i === input);
+  model.activeFlavor = flavor;
   if (!flavor) {
     return;
   }
   alert(`flavor town ${flavor.n}!`);
 }
 function renderItemGroup(input) {
-  return element("button", {
-    className: "itemGroup"
-  }, {
-    onclick: () => () => setGroup(input.i)
+  return element("button", {}, {
+    className: () => `itemGroup ${!input.u ? "hide" : ""}`,
+    onclick: () => () => setGroup(input)
   }, child(() => input.n));
 }
 function renderItemGroups() {
-  return ForEach(visibleGroups(), (x) => renderItemGroup(x));
+  return ForEach(model.data, (x) => renderItemGroup(x));
 }
 function renderItem(input) {
-  return element("button", {
-    className: "item"
-  }, {
+  return element("button", {}, {
+    className: () => `item ${!input.u ? "hide" : ""}`,
     onclick: () => () => setItem(input.i)
   }, child(() => input.n));
 }
 function renderItems() {
-  return ForEach(visibleItems(model.activeGroup), (x) => renderItem(x));
+  return Swapper(() => ForEach(model.activeGroup?.l, (x) => renderItem(x)));
 }
 function renderFlavor(input) {
-  return element("button", {
-    className: "flavor"
-  }, {
+  return element("button", {}, {
+    className: () => `flavor ${!input.u ? "hide" : ""}`,
     onclick: () => () => setFlavor(input.i)
   }, child(() => input.n));
 }
 function renderFlavors() {
-  return ForEach(visibleFlavors(model.activeGroup, model.activeItem), (x) => renderFlavor(x));
+  return Swapper(() => ForEach(model.activeItem?.f, (x) => renderFlavor(x)));
 }
 var app = (_frag = document.createDocumentFragment(), _frag.append(element("h1", {}, {}, "Quarks"), element("div", {}, {}, element("button", {}, {
   onclick: () => () => setTab(0)

@@ -1,73 +1,77 @@
 var _frag;
 import { element as _mu_element, child as _mu_child, choose as _mu_choose } from "mutraction-dom";
-import { data, visibleGroups, visibleItems, visibleFlavors } from "./data.js";
-import { track, ForEach } from "mutraction-dom";
+import { data } from "./data.js";
+import { track, ForEach, Swapper } from "mutraction-dom";
 let activeTab = 0;
 const model = track({
+  data: data,
   activeTab: 0,
-  activeGroup: -1,
-  activeItem: -1,
-  activeFlavor: -1,
+  activeGroup: null,
+  activeItem: null,
+  activeFlavor: null,
   inventory: [],
   generators: []
 });
-function currentFlavor() {
-  return data.find(x => x.i === model.activeGroup)?.l.find(x => x.i === model.activeItem)?.f.find(x => x.i === model.activeFlavor);
-}
 function setTab(input) {
+  console.log(data, model.data);
   model.activeTab = input;
-  model.activeGroup = -1;
-  model.activeItem = -1;
-  model.activeFlavor = -1;
+  model.activeGroup = null;
+  model.activeItem = null;
+  model.activeFlavor = null;
 }
 function setGroup(input) {
   model.activeGroup = input;
-  model.activeItem = -1;
-  model.activeFlavor = -1;
-  console.log('Group', input, visibleItems(model.activeGroup));
+  model.activeItem = null;
+  model.activeFlavor = null;
+  console.log('Group', input);
 }
 function setItem(input) {
-  model.activeItem = input;
-  model.activeFlavor = -1;
-  console.log('Item', input, visibleFlavors(model.activeGroup, model.activeItem));
+  const item = model.activeGroup?.l.find(x => x.u && x.i === input);
+  model.activeItem = item;
+  model.activeFlavor = null;
+  console.log('Item', input, item);
 }
 function setFlavor(input) {
-  model.activeFlavor = input;
-  const flavor = currentFlavor();
+  const flavor = model.activeItem?.f.find(x => x.i === input);
+  model.activeFlavor = flavor;
   if (!flavor) {
     return;
   }
   alert(`flavor town ${flavor.n}!`);
 }
 function renderItemGroup(input) {
-  return _mu_element("button", {
-    className: "itemGroup"
-  }, {
-    onclick: () => () => setGroup(input.i)
+  return _mu_element("button", {}, {
+    className: () => `itemGroup ${!input.u ? 'hide' : ''}`,
+    onclick: () => () => setGroup(input)
   }, _mu_child(() => input.n));
 }
 function renderItemGroups() {
-  return ForEach(visibleGroups(), x => renderItemGroup(x));
+  return ForEach(model.data, x => renderItemGroup(x));
 }
 function renderItem(input) {
-  return _mu_element("button", {
-    className: "item"
-  }, {
+  return _mu_element("button", {}, {
+    className: () => `item ${!input.u ? 'hide' : ''}`,
     onclick: () => () => setItem(input.i)
   }, _mu_child(() => input.n));
 }
 function renderItems() {
-  return ForEach(visibleItems(model.activeGroup), x => renderItem(x));
+  return Swapper(() => ForEach(model.activeGroup?.l, x => renderItem(x)));
+  // const container = <div></div> as HTMLDivElement;
+  // effect(() => container.replaceChildren( 
+  // ForEach(model.activeGroup?.l, x => renderItem(x)) 
+  // ));
+  // return container;
+  //return ForEach(model.activeGroup?.l, x => renderItem(x));
 }
+
 function renderFlavor(input) {
-  return _mu_element("button", {
-    className: "flavor"
-  }, {
+  return _mu_element("button", {}, {
+    className: () => `flavor ${!input.u ? 'hide' : ''}`,
     onclick: () => () => setFlavor(input.i)
   }, _mu_child(() => input.n));
 }
 function renderFlavors() {
-  return ForEach(visibleFlavors(model.activeGroup, model.activeItem), x => renderFlavor(x));
+  return Swapper(() => ForEach(model.activeItem?.f, x => renderFlavor(x)));
 }
 function renderComponentItem(input) {}
 function renderInventoryItem(input) {}
