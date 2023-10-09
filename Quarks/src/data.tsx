@@ -110,12 +110,12 @@ export const data:ItemGroup[] =
 	{
 		i:1,
 		n:'Atomic',
-		u:false,
+		u:true,
 		l:[
 			{
 				i:0,
 				n:'Hydrogen',
-				u:false,
+				u:true,
 				g:3,
 				info:'Hydrogen is the most common element in the universe, made with only a single proton. There are two stable isotopes.',
 				f:[
@@ -127,7 +127,7 @@ export const data:ItemGroup[] =
 			{
 				i:1,
 				n:'Helium',
-				u:false,
+				u:true,
 				g:3,
 				info:'Helium has two stable isotopes. Helium-3 is much more rare than the normal Helium-4.',
 				f:[
