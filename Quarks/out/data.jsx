@@ -1,3 +1,5 @@
+//Amount != mass; creating 1 unit give you 1 that weighs x; not gives you x units.
+//Have to refigure a bunch.
 var MassUnits;
 (function (MassUnits) {
     MassUnits["Da"] = "Da";
@@ -6,92 +8,86 @@ var MassUnits;
     MassUnits["Eg"] = "Eg";
     MassUnits["MO"] = "M\u2609";
 })(MassUnits || (MassUnits = {}));
-export const inventory = [{ g: 0, i: 0, f: 0, a: 0 }];
+export const MassUnitInfo = {
+    Da: { s: 'Da', n: 'Dalton', c: 602217364335000 },
+    ng: { s: 'ng', n: 'Nanogram', c: 1000000000000 },
+    Kg: { s: 'Kg', n: 'Kilogram', c: 1000000000000000 },
+    Eg: { s: 'Eg', n: 'Exagram', c: 1378679941220000 },
+    MO: { s: 'M☉', n: 'Solar Mass', c: Infinity }
+};
+export const inventory = [];
 export const generators = [];
-export function visibleGroups() {
-    return data.filter(x => x.u);
-}
-export function visibleItems(groupId) {
-    const group = visibleGroups().find(x => x.i === groupId);
-    if (!group) {
-        return [];
-    }
-    return group.l.filter(x => x.u);
-}
-export function visibleFlavors(groupId, itemId) {
-    const item = visibleItems(groupId).find(x => x.i === itemId);
-    if (!item) {
-        return [];
-    }
-    return item.f;
-}
+//flavors
+const saQ_Up = { n: 'Up', m: .3, u: MassUnits.MO, c: [] };
+const saQ_Down = { n: 'Down', m: .4, u: MassUnits.Da, c: [] };
+const saL_Electron = { n: 'Electron', m: 0, u: MassUnits.Da, c: [] };
+const saB_Proton = { n: 'Proton', m: 1, u: MassUnits.Da, c: [{ f: saQ_Up, a: 2 }, { f: saQ_Down, a: 1 }] };
+const saB_Neutron = { n: 'Neutron', m: 1, u: MassUnits.Da, c: [{ f: saQ_Up, a: 1 }, { f: saQ_Down, a: 2 }] };
+const aH_Protium = { n: 'Protium', m: 1, u: MassUnits.Da, c: [{ f: saB_Proton, a: 1 }, { f: saL_Electron, a: 1 }] };
+const aH_Deuterium = { n: 'Deuterium', m: 2, u: MassUnits.Da, c: [{ f: saB_Proton, a: 1 }, { f: saB_Neutron, a: 1 }, { f: saL_Electron, a: 1 }] };
+const aH_Tritium = { n: 'Tritium', m: 3, u: MassUnits.Da, c: [{ f: saB_Proton, a: 1 }, { f: saB_Neutron, a: 2 }, { f: saL_Electron, a: 1 }] };
+const aHe_3 = { n: 'Helium-3', m: 3, u: MassUnits.Da, c: [{ f: saB_Proton, a: 2 }, { f: saB_Neutron, a: 1 }, { f: saL_Electron, a: 2 }] };
+const aHe_4 = { n: 'Helium-4', m: 4, u: MassUnits.Da, c: [{ f: saB_Proton, a: 2 }, { f: saB_Neutron, a: 3 }, { f: saL_Electron, a: 2 }] };
+const aLi_6 = { n: 'Lithium-6', m: 6, u: MassUnits.Da, c: [{ f: saB_Proton, a: 3 }, { f: saB_Neutron, a: 3 }, { f: saL_Electron, a: 3 }] };
+const aLi_7 = { n: 'Lithium-7', m: 7, u: MassUnits.Da, c: [{ f: saB_Proton, a: 3 }, { f: saB_Neutron, a: 4 }, { f: saL_Electron, a: 3 }] };
+//items
+const sa_Quark = {
+    n: 'Quark', u: true, g: 1,
+    info: 'Quarks are some of the most basic building block. They come in 6 types: Up, Down, Charm, Strange, Top, and Bottom. In this game we are only using Up and Down.',
+    c: [saQ_Up, saQ_Down]
+};
+const sa_Lepton = {
+    n: 'Lepton', u: true, g: 1,
+    info: 'Leptons are some of the most basic building block. They come in 6 types: Electron, Muon, Tau, Electron Neutrino, Muon Neutrino, and Tau Neutrino. In this game we are only using Electrons.',
+    c: [saL_Electron]
+};
+const sa_Baryon = {
+    n: 'Baryons', u: false, g: 2,
+    info: 'Baryons are made of 3 Quarks. There are a few dozen different types of Baryons. In this game we are only using Protons and Neutrons.',
+    c: [saB_Proton, saB_Neutron]
+};
+const a_H = {
+    n: 'Hydrogen', u: false, g: 3,
+    info: 'Hydrogen is the most common element in the universe, made with only a single proton. There are two stable isotopes and a third with a halflife of ~12 years.',
+    c: [aH_Protium, aH_Deuterium, aH_Tritium]
+};
+const a_He = {
+    n: 'Helium', u: false, g: 3,
+    info: 'Helium has two stable isotopes. Helium-3 is much more rare than the normal Helium-4.',
+    c: [aHe_3, aHe_4]
+};
+const a_Li = {
+    n: 'Lithium', u: false, g: 3,
+    info: 'Lithium has two stable isotopes. Lithium-6 is much more rare than the normal Lithium-7.',
+    c: [aLi_6, aLi_7]
+};
+//groups
+const sa = { n: 'Subatomic', u: true, c: [sa_Quark, sa_Lepton, sa_Baryon] };
+const atomic = { n: 'Atomic', u: false, c: [a_H, a_He, a_Li] };
 export const data = [
-    {
-        i: 0,
-        n: 'Subatomic',
-        u: true,
-        l: [
-            {
-                i: 0,
-                n: 'Quark',
-                u: true,
-                g: 1,
-                info: 'Quarks are some of the most basic building block. They come in 6 types: Up, Down, Charm, Strange, Top, and Bottom. In this game we are only using Up and Down.',
-                f: [
-                    { i: 0, n: 'Up', m: .3, u: MassUnits.Da, c: [] },
-                    { i: 1, n: 'Down', m: .4, u: MassUnits.Da, c: [] }
-                ]
-            },
-            {
-                i: 1,
-                n: 'Lepton',
-                u: true,
-                g: 1,
-                info: 'Leptons are some of the most basic building block. They come in 6 types: Electron, Muon, Tau, Electron Neutrino, Muon Neutrino, and Tau Neutrino. In this game we are only using Electrons.',
-                f: [
-                    { i: 0, n: 'Electron', m: 0, u: MassUnits.Da, c: [] }
-                ]
-            },
-            {
-                i: 2,
-                n: 'Baryons',
-                u: false,
-                g: 2,
-                info: 'Baryons are made of 3 Quarks. There are a few dozen different types of Baryons. In this game we are only using Protons and Neutrons.',
-                f: [
-                    { i: 0, n: 'Proton', m: 1, u: MassUnits.Da, c: [{ g: 0, i: 0, f: 0, a: 2 }, { g: 0, i: 0, f: 2, a: 1 }] },
-                    { i: 1, n: 'Neutron', m: 1, u: MassUnits.Da, c: [{ g: 0, i: 0, f: 0, a: 1 }, { g: 0, i: 0, f: 2, a: 2 }] }
-                ]
-            },
-        ]
-    },
-    {
-        i: 1,
-        n: 'Atomic',
-        u: true,
-        l: [
-            {
-                i: 0,
-                n: 'Hydrogen',
-                u: true,
-                g: 3,
-                info: 'Hydrogen is the most common element in the universe, made with only a single proton. There are two stable isotopes.',
-                f: [
-                    { i: 0, n: '1-H', m: 1, u: MassUnits.Da, c: [{ g: 0, i: 2, f: 0, a: 1 }, { g: 0, i: 1, f: 0, a: 1 }] },
-                    { i: 1, n: '2-H', m: 1, u: MassUnits.Da, c: [{ g: 0, i: 2, f: 0, a: 1 }, { g: 0, i: 2, f: 1, a: 1 }, { g: 0, i: 1, f: 0, a: 1 }] },
-                ]
-            },
-            {
-                i: 1,
-                n: 'Helium',
-                u: true,
-                g: 3,
-                info: 'Helium has two stable isotopes. Helium-3 is much more rare than the normal Helium-4.',
-                f: [
-                    { i: 0, n: '3-He', m: 1, u: MassUnits.Da, c: [{ g: 0, i: 2, f: 0, a: 2 }, { g: 0, i: 2, f: 1, a: 1 }, { g: 0, i: 1, f: 0, a: 2 }] },
-                    { i: 1, n: '4-He', m: 1, u: MassUnits.Da, c: [{ g: 0, i: 2, f: 0, a: 2 }, { g: 0, i: 2, f: 1, a: 2 }, { g: 0, i: 1, f: 0, a: 2 }] },
-                ]
-            }
-        ]
-    }
+    sa,
+    atomic
 ];
+export const FlavorMap = {}; //Flavor Name -> Item
+export const ItemMap = {}; //Item Name => Item Group
+export const ComponentMap = {}; //Component Flavor Name -> Flavor[]
+data.forEach(g => {
+    g.c.forEach(i => {
+        if (ItemMap[i.n]) {
+            console.error('Item already exists: ' + i.n);
+        }
+        ItemMap[i.n] = g;
+        i.c.forEach(f => {
+            if (FlavorMap[f.n]) {
+                console.error('Flavor already exists: ' + f.n);
+            }
+            FlavorMap[f.n] = i;
+            f.c.forEach(c => {
+                if (!ComponentMap[c.f.n]) {
+                    ComponentMap[c.f.n] = [];
+                }
+                ComponentMap[c.f.n].push(f);
+            });
+        });
+    });
+});

@@ -920,253 +920,464 @@ var MassUnits;
   MassUnits2["Eg"] = "Eg";
   MassUnits2["MO"] = "M\u2609";
 })(MassUnits || (MassUnits = {}));
-var data = [{
-  i: 0,
+var saQ_Up = {
+  n: "Up",
+  m: 0.3,
+  u: MassUnits.MO,
+  c: []
+};
+var saQ_Down = {
+  n: "Down",
+  m: 0.4,
+  u: MassUnits.Da,
+  c: []
+};
+var saL_Electron = {
+  n: "Electron",
+  m: 0,
+  u: MassUnits.Da,
+  c: []
+};
+var saB_Proton = {
+  n: "Proton",
+  m: 1,
+  u: MassUnits.Da,
+  c: [{
+    f: saQ_Up,
+    a: 2
+  }, {
+    f: saQ_Down,
+    a: 1
+  }]
+};
+var saB_Neutron = {
+  n: "Neutron",
+  m: 1,
+  u: MassUnits.Da,
+  c: [{
+    f: saQ_Up,
+    a: 1
+  }, {
+    f: saQ_Down,
+    a: 2
+  }]
+};
+var aH_Protium = {
+  n: "Protium",
+  m: 1,
+  u: MassUnits.Da,
+  c: [{
+    f: saB_Proton,
+    a: 1
+  }, {
+    f: saL_Electron,
+    a: 1
+  }]
+};
+var aH_Deuterium = {
+  n: "Deuterium",
+  m: 2,
+  u: MassUnits.Da,
+  c: [{
+    f: saB_Proton,
+    a: 1
+  }, {
+    f: saB_Neutron,
+    a: 1
+  }, {
+    f: saL_Electron,
+    a: 1
+  }]
+};
+var aH_Tritium = {
+  n: "Tritium",
+  m: 3,
+  u: MassUnits.Da,
+  c: [{
+    f: saB_Proton,
+    a: 1
+  }, {
+    f: saB_Neutron,
+    a: 2
+  }, {
+    f: saL_Electron,
+    a: 1
+  }]
+};
+var aHe_3 = {
+  n: "Helium-3",
+  m: 3,
+  u: MassUnits.Da,
+  c: [{
+    f: saB_Proton,
+    a: 2
+  }, {
+    f: saB_Neutron,
+    a: 1
+  }, {
+    f: saL_Electron,
+    a: 2
+  }]
+};
+var aHe_4 = {
+  n: "Helium-4",
+  m: 4,
+  u: MassUnits.Da,
+  c: [{
+    f: saB_Proton,
+    a: 2
+  }, {
+    f: saB_Neutron,
+    a: 3
+  }, {
+    f: saL_Electron,
+    a: 2
+  }]
+};
+var aLi_6 = {
+  n: "Lithium-6",
+  m: 6,
+  u: MassUnits.Da,
+  c: [{
+    f: saB_Proton,
+    a: 3
+  }, {
+    f: saB_Neutron,
+    a: 3
+  }, {
+    f: saL_Electron,
+    a: 3
+  }]
+};
+var aLi_7 = {
+  n: "Lithium-7",
+  m: 7,
+  u: MassUnits.Da,
+  c: [{
+    f: saB_Proton,
+    a: 3
+  }, {
+    f: saB_Neutron,
+    a: 4
+  }, {
+    f: saL_Electron,
+    a: 3
+  }]
+};
+var sa_Quark = {
+  n: "Quark",
+  u: true,
+  g: 1,
+  info: "Quarks are some of the most basic building block. They come in 6 types: Up, Down, Charm, Strange, Top, and Bottom. In this game we are only using Up and Down.",
+  c: [saQ_Up, saQ_Down]
+};
+var sa_Lepton = {
+  n: "Lepton",
+  u: true,
+  g: 1,
+  info: "Leptons are some of the most basic building block. They come in 6 types: Electron, Muon, Tau, Electron Neutrino, Muon Neutrino, and Tau Neutrino. In this game we are only using Electrons.",
+  c: [saL_Electron]
+};
+var sa_Baryon = {
+  n: "Baryons",
+  u: false,
+  g: 2,
+  info: "Baryons are made of 3 Quarks. There are a few dozen different types of Baryons. In this game we are only using Protons and Neutrons.",
+  c: [saB_Proton, saB_Neutron]
+};
+var a_H = {
+  n: "Hydrogen",
+  u: false,
+  g: 3,
+  info: "Hydrogen is the most common element in the universe, made with only a single proton. There are two stable isotopes and a third with a halflife of ~12 years.",
+  c: [aH_Protium, aH_Deuterium, aH_Tritium]
+};
+var a_He = {
+  n: "Helium",
+  u: false,
+  g: 3,
+  info: "Helium has two stable isotopes. Helium-3 is much more rare than the normal Helium-4.",
+  c: [aHe_3, aHe_4]
+};
+var a_Li = {
+  n: "Lithium",
+  u: false,
+  g: 3,
+  info: "Lithium has two stable isotopes. Lithium-6 is much more rare than the normal Lithium-7.",
+  c: [aLi_6, aLi_7]
+};
+var sa = {
   n: "Subatomic",
   u: true,
-  l: [{
-    i: 0,
-    n: "Quark",
-    u: true,
-    g: 1,
-    info: "Quarks are some of the most basic building block. They come in 6 types: Up, Down, Charm, Strange, Top, and Bottom. In this game we are only using Up and Down.",
-    f: [{
-      i: 0,
-      n: "Up",
-      m: 0.3,
-      u: MassUnits.Da,
-      c: []
-    }, {
-      i: 1,
-      n: "Down",
-      m: 0.4,
-      u: MassUnits.Da,
-      c: []
-    }]
-  }, {
-    i: 1,
-    n: "Lepton",
-    u: true,
-    g: 1,
-    info: "Leptons are some of the most basic building block. They come in 6 types: Electron, Muon, Tau, Electron Neutrino, Muon Neutrino, and Tau Neutrino. In this game we are only using Electrons.",
-    f: [{
-      i: 0,
-      n: "Electron",
-      m: 0,
-      u: MassUnits.Da,
-      c: []
-    }]
-  }, {
-    i: 2,
-    n: "Baryons",
-    u: false,
-    g: 2,
-    info: "Baryons are made of 3 Quarks. There are a few dozen different types of Baryons. In this game we are only using Protons and Neutrons.",
-    f: [{
-      i: 0,
-      n: "Proton",
-      m: 1,
-      u: MassUnits.Da,
-      c: [{
-        g: 0,
-        i: 0,
-        f: 0,
-        a: 2
-      }, {
-        g: 0,
-        i: 0,
-        f: 2,
-        a: 1
-      }]
-    }, {
-      i: 1,
-      n: "Neutron",
-      m: 1,
-      u: MassUnits.Da,
-      c: [{
-        g: 0,
-        i: 0,
-        f: 0,
-        a: 1
-      }, {
-        g: 0,
-        i: 0,
-        f: 2,
-        a: 2
-      }]
-    }]
-  }]
-}, {
-  i: 1,
+  c: [sa_Quark, sa_Lepton, sa_Baryon]
+};
+var atomic = {
   n: "Atomic",
-  u: true,
-  l: [{
-    i: 0,
-    n: "Hydrogen",
-    u: true,
-    g: 3,
-    info: "Hydrogen is the most common element in the universe, made with only a single proton. There are two stable isotopes.",
-    f: [{
-      i: 0,
-      n: "1-H",
-      m: 1,
-      u: MassUnits.Da,
-      c: [{
-        g: 0,
-        i: 2,
-        f: 0,
-        a: 1
-      }, {
-        g: 0,
-        i: 1,
-        f: 0,
-        a: 1
-      }]
-    }, {
-      i: 1,
-      n: "2-H",
-      m: 1,
-      u: MassUnits.Da,
-      c: [{
-        g: 0,
-        i: 2,
-        f: 0,
-        a: 1
-      }, {
-        g: 0,
-        i: 2,
-        f: 1,
-        a: 1
-      }, {
-        g: 0,
-        i: 1,
-        f: 0,
-        a: 1
-      }]
-    }]
-  }, {
-    i: 1,
-    n: "Helium",
-    u: true,
-    g: 3,
-    info: "Helium has two stable isotopes. Helium-3 is much more rare than the normal Helium-4.",
-    f: [{
-      i: 0,
-      n: "3-He",
-      m: 1,
-      u: MassUnits.Da,
-      c: [{
-        g: 0,
-        i: 2,
-        f: 0,
-        a: 2
-      }, {
-        g: 0,
-        i: 2,
-        f: 1,
-        a: 1
-      }, {
-        g: 0,
-        i: 1,
-        f: 0,
-        a: 2
-      }]
-    }, {
-      i: 1,
-      n: "4-He",
-      m: 1,
-      u: MassUnits.Da,
-      c: [{
-        g: 0,
-        i: 2,
-        f: 0,
-        a: 2
-      }, {
-        g: 0,
-        i: 2,
-        f: 1,
-        a: 2
-      }, {
-        g: 0,
-        i: 1,
-        f: 0,
-        a: 2
-      }]
-    }]
-  }]
-}];
+  u: false,
+  c: [a_H, a_He, a_Li]
+};
+var data = [sa, atomic];
+var FlavorMap = {};
+var ItemMap = {};
+var ComponentMap = {};
+data.forEach((g) => {
+  g.c.forEach((i) => {
+    if (ItemMap[i.n]) {
+      console.error("Item already exists: " + i.n);
+    }
+    ItemMap[i.n] = g;
+    i.c.forEach((f) => {
+      if (FlavorMap[f.n]) {
+        console.error("Flavor already exists: " + f.n);
+      }
+      FlavorMap[f.n] = i;
+      f.c.forEach((c) => {
+        if (!ComponentMap[c.f.n]) {
+          ComponentMap[c.f.n] = [];
+        }
+        ComponentMap[c.f.n].push(f);
+      });
+    });
+  });
+});
 
 // out2/index.js
 var _frag;
+var Tabs;
+(function(Tabs2) {
+  Tabs2[Tabs2["Generate"] = 0] = "Generate";
+  Tabs2[Tabs2["Discover"] = 1] = "Discover";
+  Tabs2[Tabs2["Settings"] = 2] = "Settings";
+})(Tabs || (Tabs = {}));
 var model = track({
   data,
   activeTab: 0,
-  activeGroup: null,
-  activeItem: null,
-  activeFlavor: null,
+  activeGroup: void 0,
+  activeItem: void 0,
+  activeFlavor: void 0,
+  activeInventoryItem: void 0,
   inventory: [],
-  generators: []
+  generators: [],
+  recipeSearchResults: []
 });
+function generatorCost(input) {
+  const item = FlavorMap[input.f.n];
+  return (10 ** item.g) ** input.l;
+}
+function findInventoryItem(input) {
+  const temp = model.inventory.find((x) => x.f === input);
+  if (temp) {
+    return temp;
+  }
+  const newInvItem = {
+    f: input,
+    a: 0
+  };
+  model.inventory.push(newInvItem);
+  return findInventoryItem(input);
+}
+function findGenerator(input) {
+  const temp = model.generators.find((x) => x.f === input);
+  if (temp) {
+    return temp;
+  }
+  const newGenerator = {
+    f: input,
+    l: 0,
+    a: false
+  };
+  model.generators.push(newGenerator);
+  return newGenerator;
+}
+function recipeSearch(input) {
+  model.recipeSearchResults.length = 0;
+  const c = ComponentMap[input.n];
+  c.forEach((f) => {
+    const i = FlavorMap[f.n];
+    const g = ItemMap[i.n];
+    model.recipeSearchResults.push({
+      g,
+      i,
+      f
+    });
+  });
+}
+function hasComponents(input) {
+  let output = true;
+  input.c.forEach((c) => {
+    const inv = findInventoryItem(c.f);
+    if (inv.a < c.a) {
+      output = false;
+    }
+  });
+  return output;
+}
+function generate(input) {
+  const gen = findGenerator(input.f);
+  if (!gen) {
+    return;
+  }
+  if (!hasComponents(input.f)) {
+    return;
+  }
+  const i = FlavorMap[input.f.n];
+  i.u = true;
+  ItemMap[i.n].u = true;
+  input.f.c.forEach((c) => {
+    const inv = findInventoryItem(c.f);
+    inv.a -= c.a;
+  });
+  input.a += gen.l + 1;
+  return;
+}
 function setTab(input) {
-  console.log(data, model.data);
   model.activeTab = input;
-  model.activeGroup = null;
-  model.activeItem = null;
-  model.activeFlavor = null;
+  model.activeGroup = void 0;
+  model.activeItem = void 0;
+  model.activeFlavor = void 0;
+  model.recipeSearchResults.length = 0;
 }
 function setGroup(input) {
   model.activeGroup = input;
-  model.activeItem = null;
-  model.activeFlavor = null;
-  console.log("Group", input);
+  model.activeItem = void 0;
+  model.activeFlavor = void 0;
+  model.recipeSearchResults.length = 0;
 }
 function setItem(input) {
-  const item = model.activeGroup?.l.find((x) => x.u && x.i === input);
-  model.activeItem = item;
-  model.activeFlavor = null;
-  console.log("Item", input, item);
+  model.activeItem = input;
+  model.activeFlavor = void 0;
+  model.recipeSearchResults.length = 0;
 }
 function setFlavor(input) {
-  const flavor = model.activeItem?.f.find((x) => x.i === input);
-  model.activeFlavor = flavor;
-  if (!flavor) {
-    return;
-  }
-  alert(`flavor town ${flavor.n}!`);
-}
-function renderItemGroup(input) {
-  return element("button", {}, {
-    className: () => `itemGroup ${!input.u ? "hide" : ""}`,
-    onclick: () => () => setGroup(input)
-  }, child(() => input.n));
+  model.activeFlavor = input;
+  model.recipeSearchResults.length = 0;
+  model.activeInventoryItem = findInventoryItem(model.activeFlavor);
 }
 function renderItemGroups() {
-  return ForEach(model.data, (x) => renderItemGroup(x));
-}
-function renderItem(input) {
-  return element("button", {}, {
-    className: () => `item ${!input.u ? "hide" : ""}`,
-    onclick: () => () => setItem(input.i)
-  }, child(() => input.n));
+  return ForEach(model.data, (x) => element("button", {}, {
+    className: () => `itemGroup${!x.u ? " hide" : ""}${x === model.activeGroup ? " selected" : ""}`,
+    onclick: () => () => setGroup(x)
+  }, child(() => x.n)));
 }
 function renderItems() {
-  return Swapper(() => ForEach(model.activeGroup?.l, (x) => renderItem(x)));
-}
-function renderFlavor(input) {
-  return element("button", {}, {
-    className: () => `flavor ${!input.u ? "hide" : ""}`,
-    onclick: () => () => setFlavor(input.i)
-  }, child(() => input.n));
+  return ForEach(() => model.activeGroup?.c ?? [], (x) => element("button", {}, {
+    className: () => `item${!x.u ? " hide" : ""}${x === model.activeItem ? " selected" : ""}`,
+    onclick: () => () => setItem(x)
+  }, child(() => x.n)));
 }
 function renderFlavors() {
-  return Swapper(() => ForEach(model.activeItem?.f, (x) => renderFlavor(x)));
+  return ForEach(() => model.activeItem?.c ?? [], (x) => element("button", {}, {
+    className: () => `flavor${!x.u ? " hide" : ""}${x === model.activeFlavor ? " selected" : ""}`,
+    onclick: () => () => setFlavor(x)
+  }, child(() => x.n)));
+}
+function renderGenerateButton(input) {
+  const i = FlavorMap[input.f.n];
+  const canDo = hasComponents(input.f);
+  const className = `generateButton${!canDo ? " disabled" : ""}`;
+  return element("button", {}, {
+    className: () => className,
+    onclick: () => () => generate(input)
+  }, "Generate");
+}
+function renderActiveFlavor() {
+  console.log({
+    ...model.activeFlavor
+  });
+  return Swapper(() => renderFlavor(model.activeFlavor));
+}
+function renderFlavor(input) {
+  const inv = findInventoryItem(input);
+  const i = FlavorMap[input.n];
+  const g = ItemMap[i.n];
+  return element("div", {
+    className: "flavor"
+  }, {}, element("hr", {}, {}), element("h4", {}, {}, "Inventory"), element("div", {}, {
+    style: () => ({
+      display: "flex"
+    })
+  }, element("div", {}, {}, child(() => renderGenerateButton(inv)), element("div", {
+    className: "ownedItem"
+  }, {}, "Owned: ", child(() => inv?.a ?? 0))), element("div", {}, {}, "Picture?")), element("hr", {}, {}), element("h4", {}, {}, "Generator"), child(() => renderGenerator(input)), element("hr", {}, {}), element("h4", {}, {}, "Components"), element("div", {}, {}, element("div", {}, {}, child(() => model.activeFlavor?.c?.length ? ForEach(() => model.activeFlavor?.c ?? [], (x) => renderComponentItem(x)) : element("span", {}, {}, "This is an elementary particle, it does not have components.")))), element("hr", {}, {}), element("h4", {}, {}, "Used in"), choose({
+    nodeGetter: () => element("div", {}, {}, element("button", {}, {
+      onclick: () => () => recipeSearch(input)
+    }, "Search"), element("p", {}, {}, " Spoiler Alert: This will show all items this item is a component for; including ones you have not unlocked yet. If you want to find everything the hard way then don't click. ")),
+    conditionGetter: () => !model.recipeSearchResults.length
+  }), choose({
+    nodeGetter: () => element("div", {}, {}, child(() => Swapper(() => renderSearchResults()))),
+    conditionGetter: () => !!model.recipeSearchResults.length
+  }));
+}
+function renderComponentItem(input) {
+  const inv = findInventoryItem(input.f);
+  const i = FlavorMap[input.f.n];
+  const g = ItemMap[i.n];
+  if (!g || !i) {
+    return element("li", {}, {}, "component not found");
+  }
+  return element("div", {
+    className: "row"
+  }, {}, element("div", {
+    className: "cell"
+  }, {}, child(() => g.n), ".", child(() => i.n), ".", child(() => input.f.n)), element("div", {
+    className: "cell"
+  }, {}, " Owned:", child(() => inv.a), " / Need:", child(() => input.a)), element("div", {
+    className: "cell"
+  }, {}, child(() => renderGenerateButton(inv))));
+}
+function renderInventoryItem(input) {
+  const inv = findInventoryItem(input.f);
+  return element("div", {
+    className: "inventoryItem"
+  }, {}, child(() => input.f.n), "Owned: ", child(() => inv?.a ?? 0));
+}
+function renderGenerator(input) {
+  if (!input) {
+    return element("div", {
+      className: "hide"
+    }, {});
+  }
+  const gen = findGenerator(input);
+  if (!gen) {
+    return element("div", {
+      className: "generator"
+    }, {}, "Empty");
+  }
+  return element("div", {}, {}, element("div", {
+    className: "generator"
+  }, {}, element("div", {}, {}, element("button", {}, {}, "Upgrade", element("br", {}, {}), "(", child(() => generatorCost(gen)), ")")), element("div", {}, {}, element("div", {
+    className: "nowrap"
+  }, {}, element("label", {}, {
+    htmlFor: () => `chkGen${input.n}`
+  }, "Enabled:"), element("input", {
+    type: "checkbox"
+  }, {
+    id: () => `chkGen${input.n}`,
+    checked: () => gen.a
+  })), element("div", {
+    className: "nowrap"
+  }, {}, "Level: ", child(() => gen.l)))), element("div", {}, {}, "This will generate up to ", child(() => gen.l), " items every tick."));
+}
+function renderSearchResults() {
+  return ForEach(() => model.recipeSearchResults, (x) => {
+    const inv = findInventoryItem(x.f);
+    return element("p", {}, {}, element("div", {
+      className: "row"
+    }, {}, element("div", {
+      className: "cell"
+    }, {}, child(() => x.g.n), ".", child(() => x.i.n), ".", child(() => x.f.n)), element("div", {
+      className: "cell"
+    }, {}, child(() => renderGenerateButton(inv)))), element("ul", {
+      className: "componentList"
+    }, {}, child(() => ForEach(() => x.f.c, (y) => renderComponentItem(y)))));
+  });
 }
 var app = (_frag = document.createDocumentFragment(), _frag.append(element("h1", {}, {}, "Quarks"), element("div", {}, {}, element("button", {}, {
-  onclick: () => () => setTab(0)
+  onclick: () => () => setTab(Tabs.Generate)
 }, "Generate"), element("button", {}, {
-  onclick: () => () => setTab(1)
+  onclick: () => () => setTab(Tabs.Discover)
 }, "Discover"), element("button", {}, {
-  onclick: () => () => setTab(2)
+  onclick: () => () => setTab(Tabs.Settings)
 }, "Settings")), choose({
   nodeGetter: () => element("div", {
     className: "generate"
@@ -1174,19 +1385,32 @@ var app = (_frag = document.createDocumentFragment(), _frag.append(element("h1",
     className: "itemGroups"
   }, {}, child(() => renderItemGroups())), element("div", {
     className: "items"
-  }, {}, child(() => renderItems())), element("div", {
+  }, {}, child(() => renderItems()), choose({
+    nodeGetter: () => element("p", {}, {}, child(() => model.activeItem?.info)),
+    conditionGetter: () => !!model.activeItem
+  })), element("div", {
     className: "flavors"
-  }, {}, child(() => renderFlavors()))),
-  conditionGetter: () => model.activeTab === 0
+  }, {}, child(() => renderFlavors())), choose({
+    nodeGetter: () => element("div", {
+      className: "activeFlavor"
+    }, {}, child(() => renderActiveFlavor())),
+    conditionGetter: () => !!model.activeFlavor
+  })),
+  conditionGetter: () => model.activeTab === Tabs.Generate
 }), choose({
   nodeGetter: () => element("div", {
     className: "discover"
-  }, {}, "Discover"),
-  conditionGetter: () => model.activeTab === 1
+  }, {}, "Discover : unlock new items in the generate tab.", element("ul", {}, {}, element("li", {}, {}, "list inventory"), element("li", {}, {}, "filters?"), element("li", {}, {}, "add items?")), element("div", {}, {}, element("h3", {}, {}, "Inventory"), element("div", {}, {}, child(() => ForEach(model.inventory, (x) => renderInventoryItem(x))))), element("div", {}, {})),
+  conditionGetter: () => model.activeTab === Tabs.Discover
 }), choose({
   nodeGetter: () => element("div", {
     className: "settings"
-  }, {}, "Settings"),
-  conditionGetter: () => model.activeTab === 2
-})), _frag);
+  }, {}, "Settings", element("ul", {}, {}, element("li", {}, {}, "show/hide info"), element("li", {}, {}, "save/load"), element("li", {}, {}, "hard reset game"), element("li", {}, {}, "infinite mode (all unlocked, infinite of g0-g3? items)"), element("li", {}, {}, "auto search on flavor click"), element("li", {}, {}), element("li", {}, {}), element("li", {}, {}, "about"))),
+  conditionGetter: () => model.activeTab === Tabs.Settings
+}), element("br", {}, {}), element("div", {
+  className: "mutraction"
+}, {}, "Made with ", element("a", {
+  href: "https://mutraction.dev/",
+  target: "_blank"
+}, {}, "\u03BCtraction"))), _frag);
 document.body.append(app);
