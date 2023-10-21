@@ -18,7 +18,7 @@ export const MassUnitInfo = {
 export const inventory = [];
 export const generators = [];
 //flavors
-const saQ_Up = { n: 'Up', m: .3, u: MassUnits.MO, c: [] };
+const saQ_Up = { n: 'Up', m: .3, u: MassUnits.Da, c: [] };
 const saQ_Down = { n: 'Down', m: .4, u: MassUnits.Da, c: [] };
 const saL_Electron = { n: 'Electron', m: 0, u: MassUnits.Da, c: [] };
 const saB_Proton = { n: 'Proton', m: 1, u: MassUnits.Da, c: [{ f: saQ_Up, a: 2 }, { f: saQ_Down, a: 1 }] };
@@ -42,22 +42,22 @@ const sa_Lepton = {
     c: [saL_Electron]
 };
 const sa_Baryon = {
-    n: 'Baryons', u: false, g: 2,
+    n: 'Baryon', u: false, g: 1,
     info: 'Baryons are made of 3 Quarks. There are a few dozen different types of Baryons. In this game we are only using Protons and Neutrons.',
     c: [saB_Proton, saB_Neutron]
 };
 const a_H = {
-    n: 'Hydrogen', u: false, g: 3,
+    n: 'Hydrogen', u: false, g: 2,
     info: 'Hydrogen is the most common element in the universe, made with only a single proton. There are two stable isotopes and a third with a halflife of ~12 years.',
     c: [aH_Protium, aH_Deuterium, aH_Tritium]
 };
 const a_He = {
-    n: 'Helium', u: false, g: 3,
+    n: 'Helium', u: false, g: 2,
     info: 'Helium has two stable isotopes. Helium-3 is much more rare than the normal Helium-4.',
     c: [aHe_3, aHe_4]
 };
 const a_Li = {
-    n: 'Lithium', u: false, g: 3,
+    n: 'Lithium', u: false, g: 2,
     info: 'Lithium has two stable isotopes. Lithium-6 is much more rare than the normal Lithium-7.',
     c: [aLi_6, aLi_7]
 };
@@ -71,23 +71,29 @@ export const data = [
 export const FlavorMap = {}; //Flavor Name -> Item
 export const ItemMap = {}; //Item Name => Item Group
 export const ComponentMap = {}; //Component Flavor Name -> Flavor[]
-data.forEach(g => {
-    g.c.forEach(i => {
-        if (ItemMap[i.n]) {
-            console.error('Item already exists: ' + i.n);
-        }
-        ItemMap[i.n] = g;
-        i.c.forEach(f => {
-            if (FlavorMap[f.n]) {
-                console.error('Flavor already exists: ' + f.n);
+export function buildMaps() {
+    data.forEach(g => {
+        g.c.forEach(i => {
+            if (ItemMap[i.n]) {
+                console.error('Item already exists: ' + i.n);
             }
-            FlavorMap[f.n] = i;
-            f.c.forEach(c => {
-                if (!ComponentMap[c.f.n]) {
-                    ComponentMap[c.f.n] = [];
+            ItemMap[i.n] = g;
+            i.c.forEach(f => {
+                if (FlavorMap[f.n]) {
+                    console.error('Flavor already exists: ' + f.n);
                 }
-                ComponentMap[c.f.n].push(f);
+                FlavorMap[f.n] = i;
+                f.c.forEach(c => {
+                    if (!ComponentMap[c.f.n]) {
+                        ComponentMap[c.f.n] = [];
+                    }
+                    ComponentMap[c.f.n].push(f);
+                });
             });
         });
     });
-});
+}
+export function load() {
+}
+export function save() {
+}

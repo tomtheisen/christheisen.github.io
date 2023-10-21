@@ -9,6 +9,7 @@
 body{
 	background-color: var(--bg0);
 	color: var(--c1);
+	font-family: sans-serif;
 }
 
 button{
@@ -25,7 +26,17 @@ a, a:visited{
 	color: var(--c1);
 }
 div{
-	margin: 5px;
+}
+
+.activeFlavor{
+}
+
+.title{
+	font-size: 16px;
+	font-weight: bold;
+	font-family: sans-serif;
+	text-decoration: underline;
+	margin-bottom: 5px;
 }
 
 .componentName{
@@ -40,6 +51,11 @@ div{
 .cell{
 	display: table-cell;
 	padding: 0 5px;
+}
+
+.block{
+	border: solid 1px var(--c2);
+	text-align: center;
 }
 
 .componentList{

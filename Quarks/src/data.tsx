@@ -67,7 +67,7 @@ export const inventory : InventoryItem[] = [];
 export const generators: Generator[] = [];
 
 //flavors
-const saQ_Up : Flavor = {n:'Up',m:.3,u:MassUnits.MO,c:[]};
+const saQ_Up : Flavor = {n:'Up',m:.3,u:MassUnits.Da,c:[]};
 const saQ_Down: Flavor = {n:'Down',m:.4,u:MassUnits.Da,c:[]};
 const saL_Electron: Flavor = {n:'Electron',m:0,u:MassUnits.Da,c:[]};
 const saB_Proton: Flavor = {n:'Proton',m:1,u:MassUnits.Da,c:[{f:saQ_Up,a:2},{f:saQ_Down,a:1}]};
@@ -93,22 +93,22 @@ const sa_Lepton : Item = {
 	c:[saL_Electron]
 };
 const sa_Baryon : Item = {
-	n:'Baryons',u:false,g:2,
+	n:'Baryon',u:false,g:1,
 	info:'Baryons are made of 3 Quarks. There are a few dozen different types of Baryons. In this game we are only using Protons and Neutrons.',
 	c:[saB_Proton, saB_Neutron]
 };
 const a_H : Item ={
-	n:'Hydrogen',u:false,g:3,
+	n:'Hydrogen',u:false,g:2,
 	info:'Hydrogen is the most common element in the universe, made with only a single proton. There are two stable isotopes and a third with a halflife of ~12 years.',
 	c:[aH_Protium, aH_Deuterium, aH_Tritium]
 };
 const a_He : Item = {
-	n:'Helium',u:false,g:3,
+	n:'Helium',u:false,g:2,
 	info:'Helium has two stable isotopes. Helium-3 is much more rare than the normal Helium-4.',
 	c:[aHe_3, aHe_4]
 };
 const a_Li : Item = {
-	n:'Lithium', u:false, g:3,
+	n:'Lithium', u:false, g:2,
 	info:'Lithium has two stable isotopes. Lithium-6 is much more rare than the normal Lithium-7.',
 	c:[aLi_6, aLi_7]
 };
@@ -127,6 +127,7 @@ export const FlavorMap: {[key: string]: Item} = {};//Flavor Name -> Item
 export const ItemMap: {[key: string]: ItemGroup} = {};//Item Name => Item Group
 export const ComponentMap: {[key: string]: Flavor[]} = {};//Component Flavor Name -> Flavor[]
 
+export function buildMaps(){
 data.forEach(g => {
 	g.c.forEach(i => {
 		if(ItemMap[i.n]){
@@ -150,3 +151,12 @@ data.forEach(g => {
 		})
 	})
 });
+}
+
+export function load(){
+	
+}
+
+export function save(){
+	
+}

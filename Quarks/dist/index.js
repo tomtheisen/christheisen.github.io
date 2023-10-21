@@ -923,7 +923,7 @@ var MassUnits;
 var saQ_Up = {
   n: "Up",
   m: 0.3,
-  u: MassUnits.MO,
+  u: MassUnits.Da,
   c: []
 };
 var saQ_Down = {
@@ -1079,30 +1079,30 @@ var sa_Lepton = {
   c: [saL_Electron]
 };
 var sa_Baryon = {
-  n: "Baryons",
+  n: "Baryon",
   u: false,
-  g: 2,
+  g: 1,
   info: "Baryons are made of 3 Quarks. There are a few dozen different types of Baryons. In this game we are only using Protons and Neutrons.",
   c: [saB_Proton, saB_Neutron]
 };
 var a_H = {
   n: "Hydrogen",
   u: false,
-  g: 3,
+  g: 2,
   info: "Hydrogen is the most common element in the universe, made with only a single proton. There are two stable isotopes and a third with a halflife of ~12 years.",
   c: [aH_Protium, aH_Deuterium, aH_Tritium]
 };
 var a_He = {
   n: "Helium",
   u: false,
-  g: 3,
+  g: 2,
   info: "Helium has two stable isotopes. Helium-3 is much more rare than the normal Helium-4.",
   c: [aHe_3, aHe_4]
 };
 var a_Li = {
   n: "Lithium",
   u: false,
-  g: 3,
+  g: 2,
   info: "Lithium has two stable isotopes. Lithium-6 is much more rare than the normal Lithium-7.",
   c: [aLi_6, aLi_7]
 };
@@ -1120,35 +1120,47 @@ var data = [sa, atomic];
 var FlavorMap = {};
 var ItemMap = {};
 var ComponentMap = {};
-data.forEach((g) => {
-  g.c.forEach((i) => {
-    if (ItemMap[i.n]) {
-      console.error("Item already exists: " + i.n);
-    }
-    ItemMap[i.n] = g;
-    i.c.forEach((f) => {
-      if (FlavorMap[f.n]) {
-        console.error("Flavor already exists: " + f.n);
+function buildMaps() {
+  data.forEach((g) => {
+    g.c.forEach((i) => {
+      if (ItemMap[i.n]) {
+        console.error("Item already exists: " + i.n);
       }
-      FlavorMap[f.n] = i;
-      f.c.forEach((c) => {
-        if (!ComponentMap[c.f.n]) {
-          ComponentMap[c.f.n] = [];
+      ItemMap[i.n] = g;
+      i.c.forEach((f) => {
+        if (FlavorMap[f.n]) {
+          console.error("Flavor already exists: " + f.n);
         }
-        ComponentMap[c.f.n].push(f);
+        FlavorMap[f.n] = i;
+        f.c.forEach((c) => {
+          if (!ComponentMap[c.f.n]) {
+            ComponentMap[c.f.n] = [];
+          }
+          ComponentMap[c.f.n].push(f);
+        });
       });
     });
   });
-});
+}
+function load() {
+}
+function save() {
+}
 
 // out2/index.js
-var _frag;
+var _frag2;
 var Tabs;
 (function(Tabs2) {
   Tabs2[Tabs2["Generate"] = 0] = "Generate";
   Tabs2[Tabs2["Discover"] = 1] = "Discover";
   Tabs2[Tabs2["Settings"] = 2] = "Settings";
+  Tabs2[Tabs2["Help"] = 3] = "Help";
 })(Tabs || (Tabs = {}));
+var tabButtons = {};
+var menu = document.getElementById("menu");
+var saveRate = 10;
+var tickRate = 100;
+var updateRate = 1e3;
 var model = track({
   data,
   activeTab: 0,
@@ -1158,7 +1170,12 @@ var model = track({
   activeInventoryItem: void 0,
   inventory: [],
   generators: [],
-  recipeSearchResults: []
+  recipeSearchResults: [],
+  loadingStatus: "Loading",
+  interval: 0,
+  gameClock: 0,
+  lastUpdate: 0,
+  lastSave: 0
 });
 function generatorCost(input) {
   const item = FlavorMap[input.f.n];
@@ -1184,7 +1201,7 @@ function findGenerator(input) {
   const newGenerator = {
     f: input,
     l: 0,
-    a: false
+    a: true
   };
   model.generators.push(newGenerator);
   return newGenerator;
@@ -1212,7 +1229,7 @@ function hasComponents(input) {
   });
   return output;
 }
-function generate(input) {
+function generate(input, adjustment = 0) {
   const gen = findGenerator(input.f);
   if (!gen) {
     return;
@@ -1227,10 +1244,22 @@ function generate(input) {
     const inv = findInventoryItem(c.f);
     inv.a -= c.a;
   });
-  input.a += gen.l + 1;
+  input.a += gen.l + adjustment;
   return;
 }
+function upgradeGenrator(input) {
+  const gen = findGenerator(input);
+  const inv = findInventoryItem(input);
+  const cost = generatorCost(gen);
+  if (inv.a < cost) {
+    return;
+  }
+  gen.l++;
+  inv.a -= cost;
+}
 function setTab(input) {
+  Object.values(tabButtons).forEach((x) => x.classList.remove("selected"));
+  tabButtons[`tab_${input}`].classList.add("selected");
   model.activeTab = input;
   model.activeGroup = void 0;
   model.activeItem = void 0;
@@ -1252,6 +1281,20 @@ function setFlavor(input) {
   model.activeFlavor = input;
   model.recipeSearchResults.length = 0;
   model.activeInventoryItem = findInventoryItem(model.activeFlavor);
+}
+function gotoFlavor(input) {
+  const i = FlavorMap[input.n];
+  const g = ItemMap[i.n];
+  setTab(Tabs.Generate);
+  setGroup(g);
+  setItem(i);
+  setFlavor(input);
+}
+function gotoItem(input) {
+  const g = ItemMap[input.n];
+  setTab(Tabs.Generate);
+  setGroup(g);
+  setItem(input);
 }
 function renderItemGroups() {
   return ForEach(model.data, (x) => element("button", {}, {
@@ -1277,36 +1320,50 @@ function renderGenerateButton(input) {
   const className = `generateButton${!canDo ? " disabled" : ""}`;
   return element("button", {}, {
     className: () => className,
-    onclick: () => () => generate(input)
+    onclick: () => () => generate(input, 1)
   }, "Generate");
 }
 function renderActiveFlavor() {
-  console.log({
-    ...model.activeFlavor
-  });
   return Swapper(() => renderFlavor(model.activeFlavor));
 }
 function renderFlavor(input) {
+  var _frag;
   const inv = findInventoryItem(input);
   const i = FlavorMap[input.n];
   const g = ItemMap[i.n];
-  return element("div", {
-    className: "flavor"
-  }, {}, element("hr", {}, {}), element("h4", {}, {}, "Inventory"), element("div", {}, {
+  return _frag = document.createDocumentFragment(), _frag.append(element("div", {
+    className: "row"
+  }, {}, element("div", {
+    className: "cell block"
+  }, {}, element("div", {
+    className: "title"
+  }, {}, "Inventory"), element("div", {}, {
     style: () => ({
       display: "flex"
     })
   }, element("div", {}, {}, child(() => renderGenerateButton(inv)), element("div", {
     className: "ownedItem"
-  }, {}, "Owned: ", child(() => inv?.a ?? 0))), element("div", {}, {}, "Picture?")), element("hr", {}, {}), element("h4", {}, {}, "Generator"), child(() => renderGenerator(input)), element("hr", {}, {}), element("h4", {}, {}, "Components"), element("div", {}, {}, element("div", {}, {}, child(() => model.activeFlavor?.c?.length ? ForEach(() => model.activeFlavor?.c ?? [], (x) => renderComponentItem(x)) : element("span", {}, {}, "This is an elementary particle, it does not have components.")))), element("hr", {}, {}), element("h4", {}, {}, "Used in"), choose({
-    nodeGetter: () => element("div", {}, {}, element("button", {}, {
+  }, {}, "Owned: ", child(() => inv?.a ?? 0))))), element("div", {
+    className: "cell block"
+  }, {}, element("div", {
+    className: "title"
+  }, {}, "Generator"), child(() => renderGenerator(input))), element("div", {
+    className: "cell block"
+  }, {}, element("div", {
+    className: "title"
+  }, {}, "Components"), element("div", {}, {}, element("div", {}, {}, child(() => model.activeFlavor?.c?.length ? ForEach(() => model.activeFlavor?.c ?? [], (x) => renderComponentItem(x)) : element("span", {}, {}, "This is an elementary particle, it does not have components.")))))), element("div", {}, {}, element("div", {
+    className: "block"
+  }, {}, element("div", {
+    className: "title"
+  }, {}, "Used in"), choose({
+    nodeGetter: () => element("div", {}, {}, element("p", {}, {}, " Spoiler Alert: This will show all items this item is a component for; including ones you have not unlocked yet. If you want to find everything the hard way then don't click. "), element("button", {}, {
       onclick: () => () => recipeSearch(input)
-    }, "Search"), element("p", {}, {}, " Spoiler Alert: This will show all items this item is a component for; including ones you have not unlocked yet. If you want to find everything the hard way then don't click. ")),
+    }, "Search")),
     conditionGetter: () => !model.recipeSearchResults.length
   }), choose({
     nodeGetter: () => element("div", {}, {}, child(() => Swapper(() => renderSearchResults()))),
     conditionGetter: () => !!model.recipeSearchResults.length
-  }));
+  })))), _frag;
 }
 function renderComponentItem(input) {
   const inv = findInventoryItem(input.f);
@@ -1321,6 +1378,10 @@ function renderComponentItem(input) {
     className: "cell"
   }, {}, child(() => g.n), ".", child(() => i.n), ".", child(() => input.f.n)), element("div", {
     className: "cell"
+  }, {}, element("button", {}, {
+    onclick: () => () => gotoFlavor(input.f)
+  }, "\u2192")), element("div", {
+    className: "cell"
   }, {}, " Owned:", child(() => inv.a), " / Need:", child(() => input.a)), element("div", {
     className: "cell"
   }, {}, child(() => renderGenerateButton(inv))));
@@ -1329,7 +1390,7 @@ function renderInventoryItem(input) {
   const inv = findInventoryItem(input.f);
   return element("div", {
     className: "inventoryItem"
-  }, {}, child(() => input.f.n), "Owned: ", child(() => inv?.a ?? 0));
+  }, {}, "`$", child(() => input.f.n), " Owned: $", child(() => inv?.a ?? 0), "`");
 }
 function renderGenerator(input) {
   if (!input) {
@@ -1345,7 +1406,9 @@ function renderGenerator(input) {
   }
   return element("div", {}, {}, element("div", {
     className: "generator"
-  }, {}, element("div", {}, {}, element("button", {}, {}, "Upgrade", element("br", {}, {}), "(", child(() => generatorCost(gen)), ")")), element("div", {}, {}, element("div", {
+  }, {}, element("div", {}, {}, element("button", {}, {
+    onclick: () => () => upgradeGenrator(input)
+  }, "Upgrade", element("br", {}, {}), "(", child(() => generatorCost(gen)), ")")), element("div", {}, {}, element("div", {
     className: "nowrap"
   }, {}, element("label", {}, {
     htmlFor: () => `chkGen${input.n}`
@@ -1353,7 +1416,8 @@ function renderGenerator(input) {
     type: "checkbox"
   }, {
     id: () => `chkGen${input.n}`,
-    checked: () => gen.a
+    checked: () => gen.a,
+    onchange: () => () => gen.a = !gen.a
   })), element("div", {
     className: "nowrap"
   }, {}, "Level: ", child(() => gen.l)))), element("div", {}, {}, "This will generate up to ", child(() => gen.l), " items every tick."));
@@ -1365,52 +1429,120 @@ function renderSearchResults() {
       className: "row"
     }, {}, element("div", {
       className: "cell"
-    }, {}, child(() => x.g.n), ".", child(() => x.i.n), ".", child(() => x.f.n)), element("div", {
+    }, {}, child(() => x.g.n), ".", child(() => x.i.n), ".", child(() => x.f.n)), choose({
+      nodeGetter: () => element("div", {
+        className: "cell"
+      }, {}, element("button", {}, {
+        onclick: () => () => gotoItem(x.i)
+      }, "\u2192")),
+      conditionGetter: () => x.i.u
+    }), element("div", {
       className: "cell"
     }, {}, child(() => renderGenerateButton(inv)))), element("ul", {
       className: "componentList"
     }, {}, child(() => ForEach(() => x.f.c, (y) => renderComponentItem(y)))));
   });
 }
-var app = (_frag = document.createDocumentFragment(), _frag.append(element("h1", {}, {}, "Quarks"), element("div", {}, {}, element("button", {}, {
-  onclick: () => () => setTab(Tabs.Generate)
-}, "Generate"), element("button", {}, {
-  onclick: () => () => setTab(Tabs.Discover)
-}, "Discover"), element("button", {}, {
-  onclick: () => () => setTab(Tabs.Settings)
-}, "Settings")), choose({
+function mainLoop() {
+  const now = performance.now();
+  model.gameClock += now - model.lastUpdate;
+  model.lastUpdate = now;
+  let maxCycles = 100;
+  while (model.gameClock > updateRate && maxCycles--) {
+    model.gameClock -= updateRate;
+    model.generators.forEach((x) => {
+      if (!x.a) {
+        return;
+      }
+      const inv = findInventoryItem(x.f);
+      generate(inv);
+    });
+    if (--model.lastSave <= 0) {
+      save();
+      model.lastSave = saveRate;
+    }
+  }
+}
+function init() {
+  model.loadingStatus = "Loading Game Data";
+  buildMaps();
+  model.loadingStatus = "Loading Save Data";
+  load();
+  model.loadingStatus = "Starting Game";
+  model.lastUpdate = performance.now();
+  model.interval = setInterval(mainLoop, tickRate);
+  menu = document.getElementById("menu");
+  for (const tab in Tabs) {
+    const t = `tab_${tab}`;
+    const e = document.getElementById(t);
+    if (!e) {
+      continue;
+    }
+    tabButtons[t] = e;
+  }
+}
+var app = (_frag2 = document.createDocumentFragment(), _frag2.append(choose({
   nodeGetter: () => element("div", {
-    className: "generate"
-  }, {}, element("div", {
-    className: "itemGroups"
-  }, {}, child(() => renderItemGroups())), element("div", {
-    className: "items"
-  }, {}, child(() => renderItems()), choose({
-    nodeGetter: () => element("p", {}, {}, child(() => model.activeItem?.info)),
-    conditionGetter: () => !!model.activeItem
-  })), element("div", {
-    className: "flavors"
-  }, {}, child(() => renderFlavors())), choose({
+    className: "loading"
+  }, {}, child(() => model.loadingStatus)),
+  conditionGetter: () => !model.interval
+}, {
+  nodeGetter: () => element("div", {}, {}, element("h1", {}, {}, "Quarks"), element("div", {
+    id: "menu"
+  }, {}, element("button", {
+    className: "selected"
+  }, {
+    id: () => `tab_${Tabs.Generate}`,
+    onclick: () => () => setTab(Tabs.Generate)
+  }, "Generate"), element("button", {}, {
+    id: () => `tab_${Tabs.Discover}`,
+    onclick: () => () => setTab(Tabs.Discover)
+  }, "Discover"), element("button", {}, {
+    id: () => `tab_${Tabs.Settings}`,
+    onclick: () => () => setTab(Tabs.Settings)
+  }, "Settings"), element("button", {}, {
+    id: () => `tab_${Tabs.Help}`,
+    onclick: () => () => setTab(Tabs.Help)
+  }, "Help")), choose({
     nodeGetter: () => element("div", {
-      className: "activeFlavor"
-    }, {}, child(() => renderActiveFlavor())),
-    conditionGetter: () => !!model.activeFlavor
-  })),
-  conditionGetter: () => model.activeTab === Tabs.Generate
-}), choose({
-  nodeGetter: () => element("div", {
-    className: "discover"
-  }, {}, "Discover : unlock new items in the generate tab.", element("ul", {}, {}, element("li", {}, {}, "list inventory"), element("li", {}, {}, "filters?"), element("li", {}, {}, "add items?")), element("div", {}, {}, element("h3", {}, {}, "Inventory"), element("div", {}, {}, child(() => ForEach(model.inventory, (x) => renderInventoryItem(x))))), element("div", {}, {})),
-  conditionGetter: () => model.activeTab === Tabs.Discover
-}), choose({
-  nodeGetter: () => element("div", {
-    className: "settings"
-  }, {}, "Settings", element("ul", {}, {}, element("li", {}, {}, "show/hide info"), element("li", {}, {}, "save/load"), element("li", {}, {}, "hard reset game"), element("li", {}, {}, "infinite mode (all unlocked, infinite of g0-g3? items)"), element("li", {}, {}, "auto search on flavor click"), element("li", {}, {}), element("li", {}, {}), element("li", {}, {}, "about"))),
-  conditionGetter: () => model.activeTab === Tabs.Settings
-}), element("br", {}, {}), element("div", {
-  className: "mutraction"
-}, {}, "Made with ", element("a", {
-  href: "https://mutraction.dev/",
-  target: "_blank"
-}, {}, "\u03BCtraction"))), _frag);
+      className: "generate"
+    }, {}, element("div", {
+      className: "itemGroups"
+    }, {}, child(() => renderItemGroups())), element("div", {
+      className: "items"
+    }, {}, child(() => renderItems()), choose({
+      nodeGetter: () => element("p", {}, {}, child(() => model.activeItem?.info)),
+      conditionGetter: () => !!model.activeItem
+    })), element("div", {
+      className: "flavors"
+    }, {}, child(() => renderFlavors())), choose({
+      nodeGetter: () => element("div", {
+        className: "activeFlavor"
+      }, {}, child(() => renderActiveFlavor())),
+      conditionGetter: () => !!model.activeFlavor
+    })),
+    conditionGetter: () => model.activeTab === Tabs.Generate
+  }), choose({
+    nodeGetter: () => element("div", {
+      className: "discover"
+    }, {}, "Discover : unlock new items in the generate tab.", element("ul", {}, {}, element("li", {}, {}, "filter items?"), element("li", {}, {}, "add items to 'crafting table'?"), element("li", {}, {}, "test create? (no penalty)")), element("div", {}, {}, element("h3", {}, {}, "Inventory"), element("div", {}, {}, child(() => ForEach(model.inventory, (x) => renderInventoryItem(x))))), element("div", {}, {})),
+    conditionGetter: () => model.activeTab === Tabs.Discover
+  }), choose({
+    nodeGetter: () => element("div", {
+      className: "settings"
+    }, {}, "Settings", element("ul", {}, {}, element("li", {}, {}, "show/hide info"), element("li", {}, {}, "save/load"), element("li", {}, {}, "hard reset game"), element("li", {}, {}, "infinite mode (all unlocked, infinite of g0-g3? items)"), element("li", {}, {}, "auto search on flavor click"), element("li", {}, {}), element("li", {}, {}))),
+    conditionGetter: () => model.activeTab === Tabs.Settings
+  }), choose({
+    nodeGetter: () => element("div", {
+      className: "help"
+    }, {}, "Help", element("ul", {}, {}, element("li", {}, {}, "Buttons"), element("li", {}, {}, "Generating"), element("li", {}, {}, "Discovery"), element("li", {}, {}, "about"))),
+    conditionGetter: () => model.activeTab === Tabs.Help
+  }), element("br", {}, {}), element("div", {
+    className: "mutraction"
+  }, {}, "Made with ", element("a", {
+    href: "https://mutraction.dev/",
+    target: "_blank"
+  }, {}, "\u03BCtraction")))
+})), _frag2);
 document.body.append(app);
+init();
