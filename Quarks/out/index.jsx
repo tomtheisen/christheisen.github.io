@@ -96,7 +96,7 @@ function hasComponents(input) {
     });
     return output;
 }
-function generate(input, adjustment = 0) {
+function generate(input) {
     //find generator
     const gen = findGenerator(input.f);
     if (!gen) {
@@ -112,7 +112,7 @@ function generate(input, adjustment = 0) {
         const inv = findInventoryItem(c.f);
         inv.a -= c.a;
     });
-    input.a += gen.l + adjustment;
+    input.a++;
     return;
 }
 function upgradeGenrator(input) {
@@ -177,7 +177,7 @@ function renderGenerateButton(input) {
     const i = FlavorMap[input.f.n];
     const canDo = hasComponents(input.f);
     const className = `generateButton${!canDo ? ' disabled' : ''}`;
-    return <button className={className} onclick={() => generate(input, 1)}>Generate</button>;
+    return <button className={className} onclick={() => generate(input)}>Generate</button>;
 }
 function renderActiveFlavor() {
     return Swapper(() => renderFlavor(model.activeFlavor));
@@ -246,8 +246,13 @@ function renderComponentItem(input) {
 }
 function renderInventoryItem(input) {
     const inv = findInventoryItem(input.f);
-    return <div className='inventoryItem'>
-	{`${input.f.n} Owned: ${inv?.a ?? 0}`}
+    return <div className='row'>
+		<div className='cell'>
+			{input.f.n}
+		</div>
+		<div className='cell'>
+			{inv?.a ?? 0}
+		</div>
 	</div>;
 }
 function renderGenerator(input) {
@@ -305,7 +310,9 @@ function mainLoop() {
                 return;
             }
             const inv = findInventoryItem(x.f);
-            generate(inv);
+            for (let i = 0; i < x.l; i++) {
+                generate(inv);
+            }
         });
         //sometimes save
         if (--model.lastSave <= 0) {
