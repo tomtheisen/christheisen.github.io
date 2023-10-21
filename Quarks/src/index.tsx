@@ -1,6 +1,8 @@
 //manage all auto-generators somewhere?
 	//Or just show the input/output of an item?
 
+//display gameclock if > updateRate
+
 //update stuff isn't quite doing
 	//generate button
 	//visible groups
@@ -21,6 +23,12 @@
 	//settings object in model
 //help
 
+//hotkeys
+//1234...
+//qwerty...
+//asffg...
+//zxvbm...
+
 enum Tabs {Generate, Discover, Settings, Help};
 const tabButtons : { [key: string]: HTMLElement } = {};
 let menu = document.getElementById('menu');
@@ -29,10 +37,11 @@ const saveRate = 10;//updates per save
 const tickRate = 100;//ms
 const updateRate = 1000;//ms
 
-import { 
-	data, ItemGroup, Item, Flavor, ComponentItem, InventoryItem, Generator, 
-	RecipeSearchResults, ItemMap, FlavorMap, ComponentMap, buildMaps, load, save
-	} from "./data.js";
+import { data, buildMaps, load, save } from "./data.js";
+import {
+	ItemGroup, Item, Flavor, ComponentItem, InventoryItem, Generator, 
+	RecipeSearchResults, ItemMap, FlavorMap, ComponentMap 
+} from "./types.js";
 import { track, ForEach, effect, Swapper } from "mutraction-dom";
 
 let activeTab=0;
@@ -284,7 +293,7 @@ function renderInventoryItem(input: InventoryItem){
 	const inv = findInventoryItem(input.f);
 
 	return <div className='inventoryItem'>
-		`${input.f.n} Owned: ${inv?.a ?? 0}`
+	{`${input.f.n} Owned: ${inv?.a ?? 0}`}
 	</div>
 }
 
@@ -389,6 +398,7 @@ const app = (
 			<div mu:if={model.activeTab===Tabs.Generate} className='generate'>
 				<div className='itemGroups'>
 					{ renderItemGroups() }
+					<p mu:if={!!model.activeGroup}>{model.activeGroup?.info}</p>
 				</div>
 				<div className='items'>
 					{ renderItems() }

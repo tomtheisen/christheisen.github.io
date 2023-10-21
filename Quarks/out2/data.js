@@ -1,42 +1,4 @@
-//Amount != mass; creating 1 unit give you 1 that weighs x; not gives you x units.
-//Have to refigure a bunch.
-var MassUnits;
-(function (MassUnits) {
-  MassUnits["Da"] = "Da";
-  MassUnits["ng"] = "ng";
-  MassUnits["Kg"] = "Kg";
-  MassUnits["Eg"] = "Eg";
-  MassUnits["MO"] = "M\u2609";
-})(MassUnits || (MassUnits = {}));
-export const MassUnitInfo = {
-  Da: {
-    s: 'Da',
-    n: 'Dalton',
-    c: 602217364335000
-  },
-  ng: {
-    s: 'ng',
-    n: 'Nanogram',
-    c: 1000000000000
-  },
-  Kg: {
-    s: 'Kg',
-    n: 'Kilogram',
-    c: 1000000000000000
-  },
-  Eg: {
-    s: 'Eg',
-    n: 'Exagram',
-    c: 1378679941220000
-  },
-  MO: {
-    s: 'M☉',
-    n: 'Solar Mass',
-    c: Infinity
-  }
-};
-export const inventory = [];
-export const generators = [];
+import { ItemMap, FlavorMap, ComponentMap, MassUnits } from "./types.js";
 //flavors
 const saQ_Up = {
   n: 'Up',
@@ -229,17 +191,16 @@ const a_Li = {
 const sa = {
   n: 'Subatomic',
   u: true,
+  info: 'Subatomic components are the most basic building blocks we currently know about. There are some theories about what they might be made out of but nothing has been proven yet.',
   c: [sa_Quark, sa_Lepton, sa_Baryon]
 };
 const atomic = {
   n: 'Atomic',
   u: false,
+  info: 'Atoms are basic elements that are the building blocks for every other molecule. They have an atom, which is made of Protons and Neutrons, and are `orbited` by Electrons.',
   c: [a_H, a_He, a_Li]
 };
 export const data = [sa, atomic];
-export const FlavorMap = {}; //Flavor Name -> Item
-export const ItemMap = {}; //Item Name => Item Group
-export const ComponentMap = {}; //Component Flavor Name -> Flavor[]
 export function buildMaps() {
   data.forEach(g => {
     g.c.forEach(i => {

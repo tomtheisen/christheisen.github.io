@@ -1,70 +1,4 @@
-//Amount != mass; creating 1 unit give you 1 that weighs x; not gives you x units.
-//Have to refigure a bunch.
-
-enum MassUnits {Da='Da',ng='ng',Kg='Kg',Eg='Eg',MO='M☉'}
-
-export interface MassUnit {
-	i: number,//index
-	k: string,//key
-	s: string,//symbol
-	n: string,//name
-	c: number,//convertion ratio (cm.c = 100 to convert to m); 
-	//while(dist.a[cm] -= massUnit.cm.c > massUnit.cm.c){dist.a[m]++;}
-}
-export const MassUnitInfo = {
-	Da:{s:'Da',n:'Dalton',c:602217364335000},
-	ng:{s:'ng',n:'Nanogram',c:1000000000000},
-	Kg:{s:'Kg',n:'Kilogram',c:1000000000000000},
-	Eg:{s:'Eg',n:'Exagram',c:1378679941220000},
-	MO:{s:'M☉',n:'Solar Mass',c:Infinity}
-}
-
-export interface ItemGroup {
-	n: string,//name
-	u: boolean,//unlocked
-	c: Item[]//child items
-}
-
-export interface Item {
-	n: string,//name
-	u: boolean,//unlocked
-	g: number,//base generator cost
-	info: string,//some real world/game info
-	c: Flavor[]//children; isotopes etc...
-}
-
-export interface Flavor {
-	n: string,//name
-	m: number,//mass
-	u: MassUnits,//MassUnits
-	c: ComponentItem[]//Components needed to create
-}
-
-export interface ComponentItem {
-	f: Flavor,
-	a: number,//amount
-}
-
-export interface InventoryItem {
-	f: Flavor
-	a: number,//amount
-}
-
-export interface Generator {
-	f: Flavor,
-	l: number,//level
-	a: boolean//active
-}
-
-export interface RecipeSearchResults {
-	g: ItemGroup,
-	i: Item,
-	f: Flavor
-}
-
-
-export const inventory : InventoryItem[] = [];
-export const generators: Generator[] = [];
+import { ItemGroup, Item, Flavor, ItemMap, FlavorMap, ComponentMap, MassUnits } from "./types.js";
 
 //flavors
 const saQ_Up : Flavor = {n:'Up',m:.3,u:MassUnits.Da,c:[]};
@@ -79,7 +13,6 @@ const aHe_3 : Flavor = {n:'Helium-3',m:3,u:MassUnits.Da,c:[{f:saB_Proton,a:2},{f
 const aHe_4 : Flavor = {n:'Helium-4',m:4,u:MassUnits.Da,c:[{f:saB_Proton,a:2},{f:saB_Neutron,a:3},{f:saL_Electron,a:2}]};
 const aLi_6 : Flavor = {n:'Lithium-6',m:6,u:MassUnits.Da,c:[{f:saB_Proton,a:3},{f:saB_Neutron,a:3},{f:saL_Electron,a:3}]};
 const aLi_7 : Flavor = {n:'Lithium-7',m:7,u:MassUnits.Da,c:[{f:saB_Proton,a:3},{f:saB_Neutron,a:4},{f:saL_Electron,a:3}]};
-
 
 //items
 const sa_Quark : Item = {
@@ -114,18 +47,20 @@ const a_Li : Item = {
 };
 
 //groups
-const sa : ItemGroup = {n:'Subatomic', u:true, c:[sa_Quark, sa_Lepton, sa_Baryon]};
-const atomic : ItemGroup = {n:'Atomic', u: false, c:[a_H,a_He,a_Li]};
+const sa : ItemGroup = {
+	n:'Subatomic', u:true, 
+	info:'Subatomic components are the most basic building blocks we currently know about. There are some theories about what they might be made out of but nothing has been proven yet.',
+	c:[sa_Quark, sa_Lepton, sa_Baryon]};
+const atomic : ItemGroup = {
+	n:'Atomic', u: false, 
+	info: 'Atoms are basic elements that are the building blocks for every other molecule. They have an atom, which is made of Protons and Neutrons, and are `orbited` by Electrons.',
+	c:[a_H,a_He,a_Li]};
 
 export const data:ItemGroup[] = 
 [
 	sa,
 	atomic
 ];
-
-export const FlavorMap: {[key: string]: Item} = {};//Flavor Name -> Item
-export const ItemMap: {[key: string]: ItemGroup} = {};//Item Name => Item Group
-export const ComponentMap: {[key: string]: Flavor[]} = {};//Component Flavor Name -> Flavor[]
 
 export function buildMaps(){
 data.forEach(g => {

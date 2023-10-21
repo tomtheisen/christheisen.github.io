@@ -1,21 +1,29 @@
 var _frag2;
 import { element as _mu_element, child as _mu_child, choose as _mu_choose } from "mutraction-dom";
-//TODO: manage all auto-generators somewhere?
+//manage all auto-generators somewhere?
 //Or just show the input/output of an item?
-//TODO: item builder/suggestioner in Discovery
-//update stuff
+//display gameclock if > updateRate
+//update stuff isn't quite doing
 //generate button
 //visible groups
 //generator
-//tick - 100ms / every 1000ms do a thing
-//allow for catch-up speed
 //save/load
+//save/load object
 //inventory {f.name, amount}
 //generators {f.name, level, enabled}
 //unlocked groups/items
 //time
 //Discovery?
-//item builder/suggestion
+//figure out how this is going to work
+//item builder/suggestion?
+//settings
+//settings object in model
+//help
+//hotkeys
+//1234...
+//qwerty...
+//asffg...
+//zxvbm...
 var Tabs;
 (function (Tabs) {
   Tabs[Tabs["Generate"] = 0] = "Generate";
@@ -29,7 +37,8 @@ let menu = document.getElementById('menu');
 const saveRate = 10; //updates per save
 const tickRate = 100; //ms
 const updateRate = 1000; //ms
-import { data, ItemMap, FlavorMap, ComponentMap, buildMaps, load, save } from "./data.js";
+import { data, buildMaps, load, save } from "./data.js";
+import { ItemMap, FlavorMap, ComponentMap } from "./types.js";
 import { track, ForEach, Swapper } from "mutraction-dom";
 let activeTab = 0;
 const model = track({
@@ -262,7 +271,7 @@ function renderInventoryItem(input) {
   const inv = findInventoryItem(input.f);
   return _mu_element("div", {
     className: "inventoryItem"
-  }, {}, "`$", _mu_child(() => input.f.n), " Owned: $", _mu_child(() => inv?.a ?? 0), "`");
+  }, {}, _mu_child(() => `${input.f.n} Owned: ${inv?.a ?? 0}`));
 }
 function renderGenerator(input) {
   if (!input) {
@@ -383,7 +392,10 @@ const app = (_frag2 = document.createDocumentFragment(), _frag2.append(_mu_choos
       className: "generate"
     }, {}, _mu_element("div", {
       className: "itemGroups"
-    }, {}, _mu_child(() => renderItemGroups())), _mu_element("div", {
+    }, {}, _mu_child(() => renderItemGroups()), _mu_choose({
+      nodeGetter: () => _mu_element("p", {}, {}, _mu_child(() => model.activeGroup?.info)),
+      conditionGetter: () => !!model.activeGroup
+    })), _mu_element("div", {
       className: "items"
     }, {}, _mu_child(() => renderItems()), _mu_choose({
       nodeGetter: () => _mu_element("p", {}, {}, _mu_child(() => model.activeItem?.info)),

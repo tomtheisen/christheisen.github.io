@@ -1,19 +1,27 @@
-//TODO: manage all auto-generators somewhere?
+//manage all auto-generators somewhere?
 //Or just show the input/output of an item?
-//TODO: item builder/suggestioner in Discovery
-//update stuff
+//display gameclock if > updateRate
+//update stuff isn't quite doing
 //generate button
 //visible groups
 //generator
-//tick - 100ms / every 1000ms do a thing
-//allow for catch-up speed
 //save/load
+//save/load object
 //inventory {f.name, amount}
 //generators {f.name, level, enabled}
 //unlocked groups/items
 //time
 //Discovery?
-//item builder/suggestion
+//figure out how this is going to work
+//item builder/suggestion?
+//settings
+//settings object in model
+//help
+//hotkeys
+//1234...
+//qwerty...
+//asffg...
+//zxvbm...
 var Tabs;
 (function (Tabs) {
     Tabs[Tabs["Generate"] = 0] = "Generate";
@@ -27,7 +35,8 @@ let menu = document.getElementById('menu');
 const saveRate = 10; //updates per save
 const tickRate = 100; //ms
 const updateRate = 1000; //ms
-import { data, ItemMap, FlavorMap, ComponentMap, buildMaps, load, save } from "./data.js";
+import { data, buildMaps, load, save } from "./data.js";
+import { ItemMap, FlavorMap, ComponentMap } from "./types.js";
 import { track, ForEach, Swapper } from "mutraction-dom";
 let activeTab = 0;
 const model = track({
@@ -238,7 +247,7 @@ function renderComponentItem(input) {
 function renderInventoryItem(input) {
     const inv = findInventoryItem(input.f);
     return <div className='inventoryItem'>
-		`${input.f.n} Owned: ${inv?.a ?? 0}`
+	{`${input.f.n} Owned: ${inv?.a ?? 0}`}
 	</div>;
 }
 function renderGenerator(input) {
@@ -336,6 +345,7 @@ const app = (<>
 			<div mu:if={model.activeTab === Tabs.Generate} className='generate'>
 				<div className='itemGroups'>
 					{renderItemGroups()}
+					<p mu:if={!!model.activeGroup}>{model.activeGroup?.info}</p>
 				</div>
 				<div className='items'>
 					{renderItems()}

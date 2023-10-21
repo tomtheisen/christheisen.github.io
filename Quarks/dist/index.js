@@ -911,7 +911,7 @@ function choose(...choices) {
 }
 var instanceId = String(Math.random() * 1e6 | 0);
 
-// out2/data.js
+// out2/types.js
 var MassUnits;
 (function(MassUnits2) {
   MassUnits2["Da"] = "Da";
@@ -920,6 +920,11 @@ var MassUnits;
   MassUnits2["Eg"] = "Eg";
   MassUnits2["MO"] = "M\u2609";
 })(MassUnits || (MassUnits = {}));
+var FlavorMap = {};
+var ItemMap = {};
+var ComponentMap = {};
+
+// out2/data.js
 var saQ_Up = {
   n: "Up",
   m: 0.3,
@@ -1109,17 +1114,16 @@ var a_Li = {
 var sa = {
   n: "Subatomic",
   u: true,
+  info: "Subatomic components are the most basic building blocks we currently know about. There are some theories about what they might be made out of but nothing has been proven yet.",
   c: [sa_Quark, sa_Lepton, sa_Baryon]
 };
 var atomic = {
   n: "Atomic",
   u: false,
+  info: "Atoms are basic elements that are the building blocks for every other molecule. They have an atom, which is made of Protons and Neutrons, and are `orbited` by Electrons.",
   c: [a_H, a_He, a_Li]
 };
 var data = [sa, atomic];
-var FlavorMap = {};
-var ItemMap = {};
-var ComponentMap = {};
 function buildMaps() {
   data.forEach((g) => {
     g.c.forEach((i) => {
@@ -1390,7 +1394,7 @@ function renderInventoryItem(input) {
   const inv = findInventoryItem(input.f);
   return element("div", {
     className: "inventoryItem"
-  }, {}, "`$", child(() => input.f.n), " Owned: $", child(() => inv?.a ?? 0), "`");
+  }, {}, child(() => `${input.f.n} Owned: ${inv?.a ?? 0}`));
 }
 function renderGenerator(input) {
   if (!input) {
@@ -1508,7 +1512,10 @@ var app = (_frag2 = document.createDocumentFragment(), _frag2.append(choose({
       className: "generate"
     }, {}, element("div", {
       className: "itemGroups"
-    }, {}, child(() => renderItemGroups())), element("div", {
+    }, {}, child(() => renderItemGroups()), choose({
+      nodeGetter: () => element("p", {}, {}, child(() => model.activeGroup?.info)),
+      conditionGetter: () => !!model.activeGroup
+    })), element("div", {
       className: "items"
     }, {}, child(() => renderItems()), choose({
       nodeGetter: () => element("p", {}, {}, child(() => model.activeItem?.info)),
