@@ -16,3 +16,32 @@ export const MassUnitInfo = {
 export const FlavorMap = {}; //Flavor Name -> Item
 export const ItemMap = {}; //Item Name => Item Group
 export const ComponentMap = {}; //Component Flavor Name -> Flavor[]
+export const defaultSettings = {
+    i: true,
+    s: false,
+    h: false,
+    c: -1
+};
+export const defaultItemGroup = {
+    n: 'defaultGroup',
+    u: false,
+    info: 'default group',
+    c: []
+};
+export const defaultItem = {
+    n: 'defaultItem',
+    u: false,
+    g: -1,
+    info: 'default item',
+    c: []
+};
+export const defaultFlavor = {
+    n: 'default flavor',
+    m: -1,
+    u: MassUnits.Da,
+    c: []
+};
+export const defaultFlavorAmount = {
+    f: defaultFlavor,
+    a: -1
+};

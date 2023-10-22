@@ -1,9 +1,9 @@
 :root{
-	--bg0: #000;
+	--bg0: #000000;
 	--bg1: #0d47a1;
-	--bg2: #092352;
-	--c1: #AAA;
-	--c2: #777;
+	--bg2: #200000;
+	--c1: #AAAAAA;
+	--c2: #222222;
 }
 
 body{
@@ -76,13 +76,31 @@ div{
 	line-height: 25px;
 }
 
-.hide{
-	display: none;
+.goto{
+	font-size: 16px;
+	height: 24px;
+	width:24px;
+	padding:0;
+	margin:0;
+	border: solid 1px var(--c1);
+	border-radius:50%;
+	background-color: var(--bg0);
 }
 
 .generator{
 	padding-left: 20px;
 	display: flex;
+}
+
+.generateButton{
+	font-size: 16px;
+	height: 24px;
+	width:24px;
+	padding:0;
+	margin:0;
+	border: solid 1px var(--c1);
+	border-radius:50%;
+	background-color: var(--bg0);
 }
 
 .nowrap{
@@ -93,4 +111,10 @@ div{
 	text-decoration:line-through;
 	background-color: var(--bg2);
 	color: var(--c2);
+	border-color: var(--c2);
 }
+
+.hide{
+	display: none;
+}
+

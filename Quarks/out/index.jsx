@@ -1,27 +1,24 @@
-//manage all auto-generators somewhere?
-//Or just show the input/output of an item?
-//display gameclock if > updateRate
-//update stuff isn't quite doing
-//generate button
-//visible groups
-//generator
+//GETTING SOME LAG AFTER ONLY A FEW GENERATORS!
 //save/load
 //save/load object
 //inventory {f.name, amount}
 //generators {f.name, level, enabled}
 //unlocked groups/items
 //time
-//Discovery?
-//figure out how this is going to work
-//item builder/suggestion?
 //settings
 //settings object in model
 //help
-//hotkeys
+//manage all auto-generators somewhere?
+//Or just show the input/output of an item?
+//hotkeys (go by row, might not work for things like all the Items &| Flavors for atomic and beyond)
+//maybe just first couple rows? or use arrows + up/down
 //1234...
 //qwerty...
 //asffg...
 //zxvbm...
+//Discovery?
+//figure out how this is going to work
+//item builder/suggestion?
 var Tabs;
 (function (Tabs) {
     Tabs[Tabs["Generate"] = 0] = "Generate";
@@ -36,46 +33,42 @@ const saveRate = 10; //updates per save
 const tickRate = 100; //ms
 const updateRate = 1000; //ms
 import { data, buildMaps, load, save } from "./data.js";
-import { ItemMap, FlavorMap, ComponentMap } from "./types.js";
+import { ItemMap, FlavorMap, ComponentMap, defaultSettings, defaultItemGroup, defaultItem, defaultFlavor, defaultFlavorAmount } from "./types.js";
 import { track, ForEach, Swapper } from "mutraction-dom";
 let activeTab = 0;
 const model = track({
     data: data,
     activeTab: 0,
-    activeGroup: undefined,
-    activeItem: undefined,
-    activeFlavor: undefined,
-    activeInventoryItem: undefined,
-    inventory: [],
-    generators: [],
+    activeGroup: defaultItemGroup,
+    activeItem: defaultItem,
+    activeFlavor: defaultFlavor,
+    activeFlavorAmount: defaultFlavorAmount,
+    inventory: {},
+    generators: {},
     recipeSearchResults: [],
     loadingStatus: 'Loading',
     interval: 0,
     gameClock: 0,
     lastUpdate: 0,
-    lastSave: 0
+    lastSave: 0,
+    settings: defaultSettings
 });
 function generatorCost(input) {
     const item = FlavorMap[input.f.n];
-    return (10 ** item.g) ** input.l;
+    return (10 ** item.g) ** input.a;
 }
 function findInventoryItem(input) {
-    const temp = model.inventory.find(x => x.f === input);
-    if (temp) {
-        return temp;
+    if (!model.inventory.hasOwnProperty(input.n)) {
+        model.inventory[input.n] = { f: input, a: 0 };
     }
-    const newInvItem = { f: input, a: 0 };
-    model.inventory.push(newInvItem);
-    return findInventoryItem(input);
+    return model.inventory[input.n];
 }
 function findGenerator(input) {
-    const temp = model.generators.find(x => x.f === input);
-    if (temp) {
-        return temp;
+    if (!model.generators.hasOwnProperty(input.n)) {
+        const ci = input.c.map(x => ({ c: x, i: model.inventory[x.f.n] }));
+        model.generators[input.n] = { f: input, a: 0, e: true, ci: ci };
     }
-    const newGenerator = { f: input, l: 0, a: true };
-    model.generators.push(newGenerator);
-    return newGenerator;
+    return model.generators[input.n];
 }
 function recipeSearch(input) {
     model.recipeSearchResults.length = 0;
@@ -92,28 +85,34 @@ function hasComponents(input) {
         const inv = findInventoryItem(c.f);
         if (inv.a < c.a) {
             output = false;
+            return;
         }
     });
     return output;
 }
-function generate(input) {
-    //find generator
-    const gen = findGenerator(input.f);
-    if (!gen) {
+function generateClick(input) {
+    const componentInventory = input.f.c.map(x => ({ c: x, i: findInventoryItem(x.f) }));
+    let amount = 1;
+    componentInventory.forEach(x => amount = Math.min(Math.floor(x.i.a / x.c.a), amount));
+    if (amount <= 0) {
         return;
     }
-    if (!hasComponents(input.f)) {
-        return;
-    }
+    //If this is a new item it needs to be unlocked. 
+    //This is different than the generator's generate.
     const i = FlavorMap[input.f.n];
     i.u = true;
     ItemMap[i.n].u = true;
-    input.f.c.forEach(c => {
-        const inv = findInventoryItem(c.f);
-        inv.a -= c.a;
-    });
-    input.a++;
-    return;
+    componentInventory.forEach(x => x.i.a -= x.c.a);
+    findInventoryItem(input.f).a += 100;
+}
+function generate(input, amount) {
+    //const componentInventory = input.f.c.map(x => ({c: x, i: model.inventory[x.f]}));
+    input.ci.forEach(x => amount = Math.min(Math.floor(x.i.a / x.c.a), amount));
+    if (amount <= 0) {
+        return;
+    }
+    input.ci.forEach(x => x.i.a -= x.c.a * amount);
+    findInventoryItem(input.f).a += amount;
 }
 function upgradeGenrator(input) {
     const gen = findGenerator(input);
@@ -122,33 +121,33 @@ function upgradeGenrator(input) {
     if (inv.a < cost) {
         return;
     }
-    gen.l++;
+    gen.a++;
     inv.a -= cost;
 }
 function setTab(input) {
     Object.values(tabButtons).forEach(x => x.classList.remove('selected'));
     tabButtons[`tab_${input}`].classList.add('selected');
     model.activeTab = input;
-    model.activeGroup = undefined;
-    model.activeItem = undefined;
-    model.activeFlavor = undefined;
+    model.activeGroup = defaultItemGroup;
+    model.activeItem = defaultItem;
+    model.activeFlavor = defaultFlavor;
     model.recipeSearchResults.length = 0;
 }
 function setGroup(input) {
     model.activeGroup = input;
-    model.activeItem = undefined;
-    model.activeFlavor = undefined;
+    model.activeItem = defaultItem;
+    model.activeFlavor = defaultFlavor;
     model.recipeSearchResults.length = 0;
 }
 function setItem(input) {
     model.activeItem = input;
-    model.activeFlavor = undefined;
+    model.activeFlavor = defaultFlavor;
     model.recipeSearchResults.length = 0;
 }
 function setFlavor(input) {
     model.activeFlavor = input;
     model.recipeSearchResults.length = 0;
-    model.activeInventoryItem = findInventoryItem(model.activeFlavor);
+    model.activeFlavorAmount = findInventoryItem(model.activeFlavor);
 }
 function gotoFlavor(input) {
     const i = FlavorMap[input.n];
@@ -157,12 +156,6 @@ function gotoFlavor(input) {
     setGroup(g);
     setItem(i);
     setFlavor(input);
-}
-function gotoItem(input) {
-    const g = ItemMap[input.n];
-    setTab(Tabs.Generate);
-    setGroup(g);
-    setItem(input);
 }
 function renderItemGroups() {
     return ForEach(model.data, x => <button className={`itemGroup${!x.u ? ' hide' : ''}${x === model.activeGroup ? ' selected' : ''}`} onclick={() => setGroup(x)}>{x.n}</button>);
@@ -177,12 +170,13 @@ function renderGenerateButton(input) {
     const i = FlavorMap[input.f.n];
     const canDo = hasComponents(input.f);
     const className = `generateButton${!canDo ? ' disabled' : ''}`;
-    return <button className={className} onclick={() => generate(input)}>Generate</button>;
+    return <button title={`Generate a ${input.f.n}`} className={className} onclick={() => generateClick(input)}>++</button>;
 }
 function renderActiveFlavor() {
-    return Swapper(() => renderFlavor(model.activeFlavor));
-}
-function renderFlavor(input) {
+    if (!model.activeFlavor) {
+        return <div className='hide'></div>;
+    }
+    const input = model.activeFlavor;
     const inv = findInventoryItem(input);
     const i = FlavorMap[input.n];
     const g = ItemMap[i.n];
@@ -192,8 +186,7 @@ function renderFlavor(input) {
 				<div className='title'>Inventory</div>
 				<div style={{ display: 'flex' }}>
 					<div>
-						{renderGenerateButton(inv)}
-						<div className='ownedItem'>Owned: {inv?.a ?? 0}</div>
+						<div className='ownedItem'>Owned: {inv?.a ?? 0} {renderGenerateButton(inv)}</div>
 					</div>
 				</div>
 			</div>
@@ -205,7 +198,7 @@ function renderFlavor(input) {
 				<div className='title'>Components</div>
 				<div>
 					<div>{model.activeFlavor?.c?.length ?
-            ForEach(() => model.activeFlavor?.c ?? [], x => renderComponentItem(x)) :
+            ForEach(() => model.activeFlavor?.c ?? [], x => renderFlavorAmount(x, 2)) :
             <span>This is an elementary particle, it does not have components.</span>}
 					</div>
 				</div>
@@ -230,29 +223,22 @@ function renderFlavor(input) {
 		</div>
 	</>;
 }
-function renderComponentItem(input) {
-    const inv = findInventoryItem(input.f);
+//1: inventory, 2: flavor component
+//a bit smelly, but these ended up being almost exactly the same.
+function renderFlavorAmount(input, type) {
+    const inv = type === 1 ? input : findInventoryItem(input.f);
     const i = FlavorMap[input.f.n];
     const g = ItemMap[i.n];
-    if (!g || !i) {
-        return <li>component not found</li>;
+    let amount = `Owned:${inv.a}`;
+    if (type === 2) {
+        amount += ` / Need:${input.a}`;
     }
+    ;
     return <div className='row'>
-				<div className='cell'>{g.n}.{i.n}.{input.f.n}</div>
-				<div className='cell'><button onclick={() => gotoFlavor(input.f)}>→</button></div>
-				<div className='cell'> Owned:{inv.a} / Need:{input.a}</div>
-				<div className='cell'>{renderGenerateButton(inv)}</div>
-			</div>;
-}
-function renderInventoryItem(input) {
-    const inv = findInventoryItem(input.f);
-    return <div className='row'>
-		<div className='cell'>
-			{input.f.n}
-		</div>
-		<div className='cell'>
-			{inv?.a ?? 0}
-		</div>
+		<div className='cell'><button title={`Go To ${g.n}.${i.n}.${input.f.n}`} className='goto' onclick={() => gotoFlavor(input.f)}>»</button></div>
+		<div className='cell'>{g.n}.{i.n}.{input.f.n}</div>
+		<div className='cell'>{amount}</div>
+		<div className='cell'>{renderGenerateButton(inv)}</div>
 	</div>;
 }
 function renderGenerator(input) {
@@ -271,13 +257,13 @@ function renderGenerator(input) {
 			<div>
 				<div className='nowrap'>
 					<label htmlFor={`chkGen${input.n}`}>Enabled:</label>
-					<input id={`chkGen${input.n}`} type='checkbox' checked={gen.a} onchange={() => gen.a = !gen.a}/>
+					<input id={`chkGen${input.n}`} type='checkbox' checked={gen.e} onchange={() => gen.e = !gen.e}/>
 				</div>
-				<div className='nowrap'>Level: {gen.l}</div>
+				<div className='nowrap'>Level: {gen.a}</div>
 			</div>
 		</div>
 		<div>
-			This will generate up to {gen.l} items every tick.
+			This will generate up to {gen.a} items every tick.
 		</div>
 	</div>;
 }
@@ -286,12 +272,12 @@ function renderSearchResults() {
         const inv = findInventoryItem(x.f);
         return <p>
 			<div className='row'>
+				<div mu:if={x.i.u} className='cell'><button title={`Go To ${x.g.n}.${x.i.n}.${x.f.n}`} className='goto' onclick={() => gotoFlavor(x.f)}>»</button></div>
 				<div className='cell'>{x.g.n}.{x.i.n}.{x.f.n}</div>
-				<div mu:if={x.i.u} className='cell'><button onclick={() => gotoItem(x.i)}>→</button></div>
 				<div className='cell'>{renderGenerateButton(inv)}</div>
 			</div>
 			<ul className='componentList'>
-				{ForEach(() => x.f.c, y => renderComponentItem(y))}
+				{ForEach(() => x.f.c, y => renderFlavorAmount(y, 2))}
 			</ul>
 		</p>;
     });
@@ -305,14 +291,11 @@ function mainLoop() {
     while (model.gameClock > updateRate && maxCycles--) {
         model.gameClock -= updateRate;
         //do generates
-        model.generators.forEach(x => {
-            if (!x.a) {
+        Object.values(model.generators).forEach(x => {
+            if (!x.e) {
                 return;
             }
-            const inv = findInventoryItem(x.f);
-            for (let i = 0; i < x.l; i++) {
-                generate(inv);
-            }
+            generate(x, x.a);
         });
         //sometimes save
         if (--model.lastSave <= 0) {
@@ -341,6 +324,7 @@ function init() {
 }
 const app = (<>
 		<div mu:if={!model.interval} className='loading'>{model.loadingStatus}</div>
+		<div mu:if={model.gameClock > 2 * updateRate}>{model.gameClock}</div>
 		<div mu:else>
 			<h1>Quarks</h1>
 			<div id='menu'>
@@ -350,26 +334,29 @@ const app = (<>
 				<button id={`tab_${Tabs.Help}`} onclick={() => setTab(Tabs.Help)}>Help</button>
 			</div>
 			<div mu:if={model.activeTab === Tabs.Generate} className='generate'>
+				<p>This is the main place for generating resources</p>
 				<div className='itemGroups'>
 					{renderItemGroups()}
-					<p mu:if={!!model.activeGroup}>{model.activeGroup?.info}</p>
+					<p mu:if={model.activeGroup.u}>{model.activeGroup?.info}</p>
 				</div>
 				<div className='items'>
 					{renderItems()}
-					<p mu:if={!!model.activeItem}>{model.activeItem?.info}</p>
+					<p mu:if={model.activeItem.u}>{model.activeItem?.info}</p>
 				</div>
 				<div className='flavors'>
 					{renderFlavors()}
 				</div>
-				<div mu:if={!!model.activeFlavor} className='activeFlavor'>
-					{renderActiveFlavor()}
+				<div mu:if={model.activeFlavor.m >= 0} className='activeFlavor'>
+					{Swapper(renderActiveFlavor)}
 				</div>
 			</div>
 			<div mu:if={model.activeTab === Tabs.Discover} className='discover'>
+				<p>This is the main place for discovering new resources.</p>
+
 				Discover : unlock new items in the generate tab.
 				
 				<ul>
-					<li>filter items?</li>
+					<li>filter items? (text input, group/item select, quantity filter)</li>
 					<li>add items to 'crafting table'?</li>
 					<li>test create? (no penalty)</li>
 				</ul>
@@ -377,7 +364,7 @@ const app = (<>
 				<div>
 					<h3>Inventory</h3>
 					<div>
-					{ForEach(model.inventory, x => renderInventoryItem(x))}
+					{ForEach(() => Object.values(model.inventory).sort((a, b) => a.f.n.localeCompare(b.f.n)), x => renderFlavorAmount(x, 1))}
 					</div>
 				</div>
 				<div>
@@ -385,6 +372,7 @@ const app = (<>
 			
 			</div>
 			<div mu:if={model.activeTab === Tabs.Settings} className='settings'>
+				<p>This is where you can change game settings.</p>
 				Settings
 				<ul>
 					<li>show/hide info</li>
@@ -397,6 +385,7 @@ const app = (<>
 				</ul>
 			</div>
 			<div mu:if={model.activeTab === Tabs.Help} className='help'>
+				<p>This is where you can find information about the game.</p>
 				Help
 				<ul>
 					<li>Buttons</li>

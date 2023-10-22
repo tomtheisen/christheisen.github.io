@@ -1,29 +1,26 @@
 var _frag2;
 import { element as _mu_element, child as _mu_child, choose as _mu_choose } from "mutraction-dom";
-//manage all auto-generators somewhere?
-//Or just show the input/output of an item?
-//display gameclock if > updateRate
-//update stuff isn't quite doing
-//generate button
-//visible groups
-//generator
+//GETTING SOME LAG AFTER ONLY A FEW GENERATORS!
 //save/load
 //save/load object
 //inventory {f.name, amount}
 //generators {f.name, level, enabled}
 //unlocked groups/items
 //time
-//Discovery?
-//figure out how this is going to work
-//item builder/suggestion?
 //settings
 //settings object in model
 //help
-//hotkeys
+//manage all auto-generators somewhere?
+//Or just show the input/output of an item?
+//hotkeys (go by row, might not work for things like all the Items &| Flavors for atomic and beyond)
+//maybe just first couple rows? or use arrows + up/down
 //1234...
 //qwerty...
 //asffg...
 //zxvbm...
+//Discovery?
+//figure out how this is going to work
+//item builder/suggestion?
 var Tabs;
 (function (Tabs) {
   Tabs[Tabs["Generate"] = 0] = "Generate";
@@ -38,53 +35,53 @@ const saveRate = 10; //updates per save
 const tickRate = 100; //ms
 const updateRate = 1000; //ms
 import { data, buildMaps, load, save } from "./data.js";
-import { ItemMap, FlavorMap, ComponentMap } from "./types.js";
+import { ItemMap, FlavorMap, ComponentMap, defaultSettings, defaultItemGroup, defaultItem, defaultFlavor, defaultFlavorAmount } from "./types.js";
 import { track, ForEach, Swapper } from "mutraction-dom";
 let activeTab = 0;
 const model = track({
   data: data,
   activeTab: 0,
-  activeGroup: undefined,
-  activeItem: undefined,
-  activeFlavor: undefined,
-  activeInventoryItem: undefined,
-  inventory: [],
-  generators: [],
+  activeGroup: defaultItemGroup,
+  activeItem: defaultItem,
+  activeFlavor: defaultFlavor,
+  activeFlavorAmount: defaultFlavorAmount,
+  inventory: {},
+  generators: {},
   recipeSearchResults: [],
   loadingStatus: 'Loading',
   interval: 0,
   gameClock: 0,
   lastUpdate: 0,
-  lastSave: 0
+  lastSave: 0,
+  settings: defaultSettings
 });
 function generatorCost(input) {
   const item = FlavorMap[input.f.n];
-  return (10 ** item.g) ** input.l;
+  return (10 ** item.g) ** input.a;
 }
 function findInventoryItem(input) {
-  const temp = model.inventory.find(x => x.f === input);
-  if (temp) {
-    return temp;
+  if (!model.inventory.hasOwnProperty(input.n)) {
+    model.inventory[input.n] = {
+      f: input,
+      a: 0
+    };
   }
-  const newInvItem = {
-    f: input,
-    a: 0
-  };
-  model.inventory.push(newInvItem);
-  return findInventoryItem(input);
+  return model.inventory[input.n];
 }
 function findGenerator(input) {
-  const temp = model.generators.find(x => x.f === input);
-  if (temp) {
-    return temp;
+  if (!model.generators.hasOwnProperty(input.n)) {
+    const ci = input.c.map(x => ({
+      c: x,
+      i: model.inventory[x.f.n]
+    }));
+    model.generators[input.n] = {
+      f: input,
+      a: 0,
+      e: true,
+      ci: ci
+    };
   }
-  const newGenerator = {
-    f: input,
-    l: 0,
-    a: true
-  };
-  model.generators.push(newGenerator);
-  return newGenerator;
+  return model.generators[input.n];
 }
 function recipeSearch(input) {
   model.recipeSearchResults.length = 0;
@@ -105,28 +102,37 @@ function hasComponents(input) {
     const inv = findInventoryItem(c.f);
     if (inv.a < c.a) {
       output = false;
+      return;
     }
   });
   return output;
 }
-function generate(input) {
-  //find generator
-  const gen = findGenerator(input.f);
-  if (!gen) {
+function generateClick(input) {
+  const componentInventory = input.f.c.map(x => ({
+    c: x,
+    i: findInventoryItem(x.f)
+  }));
+  let amount = 1;
+  componentInventory.forEach(x => amount = Math.min(Math.floor(x.i.a / x.c.a), amount));
+  if (amount <= 0) {
     return;
   }
-  if (!hasComponents(input.f)) {
-    return;
-  }
+  //If this is a new item it needs to be unlocked. 
+  //This is different than the generator's generate.
   const i = FlavorMap[input.f.n];
   i.u = true;
   ItemMap[i.n].u = true;
-  input.f.c.forEach(c => {
-    const inv = findInventoryItem(c.f);
-    inv.a -= c.a;
-  });
-  input.a++;
-  return;
+  componentInventory.forEach(x => x.i.a -= x.c.a);
+  findInventoryItem(input.f).a += 100;
+}
+function generate(input, amount) {
+  //const componentInventory = input.f.c.map(x => ({c: x, i: model.inventory[x.f]}));
+  input.ci.forEach(x => amount = Math.min(Math.floor(x.i.a / x.c.a), amount));
+  if (amount <= 0) {
+    return;
+  }
+  input.ci.forEach(x => x.i.a -= x.c.a * amount);
+  findInventoryItem(input.f).a += amount;
 }
 function upgradeGenrator(input) {
   const gen = findGenerator(input);
@@ -135,33 +141,33 @@ function upgradeGenrator(input) {
   if (inv.a < cost) {
     return;
   }
-  gen.l++;
+  gen.a++;
   inv.a -= cost;
 }
 function setTab(input) {
   Object.values(tabButtons).forEach(x => x.classList.remove('selected'));
   tabButtons[`tab_${input}`].classList.add('selected');
   model.activeTab = input;
-  model.activeGroup = undefined;
-  model.activeItem = undefined;
-  model.activeFlavor = undefined;
+  model.activeGroup = defaultItemGroup;
+  model.activeItem = defaultItem;
+  model.activeFlavor = defaultFlavor;
   model.recipeSearchResults.length = 0;
 }
 function setGroup(input) {
   model.activeGroup = input;
-  model.activeItem = undefined;
-  model.activeFlavor = undefined;
+  model.activeItem = defaultItem;
+  model.activeFlavor = defaultFlavor;
   model.recipeSearchResults.length = 0;
 }
 function setItem(input) {
   model.activeItem = input;
-  model.activeFlavor = undefined;
+  model.activeFlavor = defaultFlavor;
   model.recipeSearchResults.length = 0;
 }
 function setFlavor(input) {
   model.activeFlavor = input;
   model.recipeSearchResults.length = 0;
-  model.activeInventoryItem = findInventoryItem(model.activeFlavor);
+  model.activeFlavorAmount = findInventoryItem(model.activeFlavor);
 }
 function gotoFlavor(input) {
   const i = FlavorMap[input.n];
@@ -170,12 +176,6 @@ function gotoFlavor(input) {
   setGroup(g);
   setItem(i);
   setFlavor(input);
-}
-function gotoItem(input) {
-  const g = ItemMap[input.n];
-  setTab(Tabs.Generate);
-  setGroup(g);
-  setItem(input);
 }
 function renderItemGroups() {
   return ForEach(model.data, x => _mu_element("button", {}, {
@@ -200,15 +200,19 @@ function renderGenerateButton(input) {
   const canDo = hasComponents(input.f);
   const className = `generateButton${!canDo ? ' disabled' : ''}`;
   return _mu_element("button", {}, {
+    title: () => `Generate a ${input.f.n}`,
     className: () => className,
-    onclick: () => () => generate(input)
-  }, "Generate");
+    onclick: () => () => generateClick(input)
+  }, "++");
 }
 function renderActiveFlavor() {
-  return Swapper(() => renderFlavor(model.activeFlavor));
-}
-function renderFlavor(input) {
   var _frag;
+  if (!model.activeFlavor) {
+    return _mu_element("div", {
+      className: "hide"
+    }, {});
+  }
+  const input = model.activeFlavor;
   const inv = findInventoryItem(input);
   const i = FlavorMap[input.n];
   const g = ItemMap[i.n];
@@ -222,9 +226,9 @@ function renderFlavor(input) {
     style: () => ({
       display: 'flex'
     })
-  }, _mu_element("div", {}, {}, _mu_child(() => renderGenerateButton(inv)), _mu_element("div", {
+  }, _mu_element("div", {}, {}, _mu_element("div", {
     className: "ownedItem"
-  }, {}, "Owned: ", _mu_child(() => inv?.a ?? 0))))), _mu_element("div", {
+  }, {}, "Owned: ", _mu_child(() => inv?.a ?? 0), " ", _mu_child(() => renderGenerateButton(inv)))))), _mu_element("div", {
     className: "cell block"
   }, {}, _mu_element("div", {
     className: "title"
@@ -232,7 +236,7 @@ function renderFlavor(input) {
     className: "cell block"
   }, {}, _mu_element("div", {
     className: "title"
-  }, {}, "Components"), _mu_element("div", {}, {}, _mu_element("div", {}, {}, _mu_child(() => model.activeFlavor?.c?.length ? ForEach(() => model.activeFlavor?.c ?? [], x => renderComponentItem(x)) : _mu_element("span", {}, {}, "This is an elementary particle, it does not have components.")))))), _mu_element("div", {}, {}, _mu_element("div", {
+  }, {}, "Components"), _mu_element("div", {}, {}, _mu_element("div", {}, {}, _mu_child(() => model.activeFlavor?.c?.length ? ForEach(() => model.activeFlavor?.c ?? [], x => renderFlavorAmount(x, 2)) : _mu_element("span", {}, {}, "This is an elementary particle, it does not have components.")))))), _mu_element("div", {}, {}, _mu_element("div", {
     className: "block"
   }, {}, _mu_element("div", {
     className: "title"
@@ -246,36 +250,33 @@ function renderFlavor(input) {
     conditionGetter: () => !!model.recipeSearchResults.length
   })))), _frag;
 }
-function renderComponentItem(input) {
-  const inv = findInventoryItem(input.f);
+//1: inventory, 2: flavor component
+//a bit smelly, but these ended up being almost exactly the same.
+function renderFlavorAmount(input, type) {
+  const inv = type === 1 ? input : findInventoryItem(input.f);
   const i = FlavorMap[input.f.n];
   const g = ItemMap[i.n];
-  if (!g || !i) {
-    return _mu_element("li", {}, {}, "component not found");
+  let amount = `Owned:${inv.a}`;
+  if (type === 2) {
+    amount += ` / Need:${input.a}`;
   }
+  ;
   return _mu_element("div", {
     className: "row"
   }, {}, _mu_element("div", {
+    className: "cell"
+  }, {}, _mu_element("button", {
+    className: "goto"
+  }, {
+    title: () => `Go To ${g.n}.${i.n}.${input.f.n}`,
+    onclick: () => () => gotoFlavor(input.f)
+  }, "\xBB")), _mu_element("div", {
     className: "cell"
   }, {}, _mu_child(() => g.n), ".", _mu_child(() => i.n), ".", _mu_child(() => input.f.n)), _mu_element("div", {
     className: "cell"
-  }, {}, _mu_element("button", {}, {
-    onclick: () => () => gotoFlavor(input.f)
-  }, "\u2192")), _mu_element("div", {
-    className: "cell"
-  }, {}, " Owned:", _mu_child(() => inv.a), " / Need:", _mu_child(() => input.a)), _mu_element("div", {
+  }, {}, _mu_child(() => amount)), _mu_element("div", {
     className: "cell"
   }, {}, _mu_child(() => renderGenerateButton(inv))));
-}
-function renderInventoryItem(input) {
-  const inv = findInventoryItem(input.f);
-  return _mu_element("div", {
-    className: "row"
-  }, {}, _mu_element("div", {
-    className: "cell"
-  }, {}, _mu_child(() => input.f.n)), _mu_element("div", {
-    className: "cell"
-  }, {}, _mu_child(() => inv?.a ?? 0)));
 }
 function renderGenerator(input) {
   if (!input) {
@@ -301,31 +302,34 @@ function renderGenerator(input) {
     type: "checkbox"
   }, {
     id: () => `chkGen${input.n}`,
-    checked: () => gen.a,
-    onchange: () => () => gen.a = !gen.a
+    checked: () => gen.e,
+    onchange: () => () => gen.e = !gen.e
   })), _mu_element("div", {
     className: "nowrap"
-  }, {}, "Level: ", _mu_child(() => gen.l)))), _mu_element("div", {}, {}, "This will generate up to ", _mu_child(() => gen.l), " items every tick."));
+  }, {}, "Level: ", _mu_child(() => gen.a)))), _mu_element("div", {}, {}, "This will generate up to ", _mu_child(() => gen.a), " items every tick."));
 }
 function renderSearchResults() {
   return ForEach(() => model.recipeSearchResults, x => {
     const inv = findInventoryItem(x.f);
     return _mu_element("p", {}, {}, _mu_element("div", {
       className: "row"
-    }, {}, _mu_element("div", {
-      className: "cell"
-    }, {}, _mu_child(() => x.g.n), ".", _mu_child(() => x.i.n), ".", _mu_child(() => x.f.n)), _mu_choose({
+    }, {}, _mu_choose({
       nodeGetter: () => _mu_element("div", {
         className: "cell"
-      }, {}, _mu_element("button", {}, {
-        onclick: () => () => gotoItem(x.i)
-      }, "\u2192")),
+      }, {}, _mu_element("button", {
+        className: "goto"
+      }, {
+        title: () => `Go To ${x.g.n}.${x.i.n}.${x.f.n}`,
+        onclick: () => () => gotoFlavor(x.f)
+      }, "\xBB")),
       conditionGetter: () => x.i.u
     }), _mu_element("div", {
       className: "cell"
+    }, {}, _mu_child(() => x.g.n), ".", _mu_child(() => x.i.n), ".", _mu_child(() => x.f.n)), _mu_element("div", {
+      className: "cell"
     }, {}, _mu_child(() => renderGenerateButton(inv)))), _mu_element("ul", {
       className: "componentList"
-    }, {}, _mu_child(() => ForEach(() => x.f.c, y => renderComponentItem(y)))));
+    }, {}, _mu_child(() => ForEach(() => x.f.c, y => renderFlavorAmount(y, 2)))));
   });
 }
 function mainLoop() {
@@ -337,14 +341,11 @@ function mainLoop() {
   while (model.gameClock > updateRate && maxCycles--) {
     model.gameClock -= updateRate;
     //do generates
-    model.generators.forEach(x => {
-      if (!x.a) {
+    Object.values(model.generators).forEach(x => {
+      if (!x.e) {
         return;
       }
-      const inv = findInventoryItem(x.f);
-      for (let i = 0; i < x.l; i++) {
-        generate(inv);
-      }
+      generate(x, x.a);
     });
     //sometimes save
     if (--model.lastSave <= 0) {
@@ -376,6 +377,9 @@ const app = (_frag2 = document.createDocumentFragment(), _frag2.append(_mu_choos
     className: "loading"
   }, {}, _mu_child(() => model.loadingStatus)),
   conditionGetter: () => !model.interval
+}), _mu_choose({
+  nodeGetter: () => _mu_element("div", {}, {}, _mu_child(() => model.gameClock)),
+  conditionGetter: () => model.gameClock > 2 * updateRate
 }, {
   nodeGetter: () => _mu_element("div", {}, {}, _mu_element("h1", {}, {}, "Quarks"), _mu_element("div", {
     id: "menu"
@@ -396,39 +400,39 @@ const app = (_frag2 = document.createDocumentFragment(), _frag2.append(_mu_choos
   }, "Help")), _mu_choose({
     nodeGetter: () => _mu_element("div", {
       className: "generate"
-    }, {}, _mu_element("div", {
+    }, {}, _mu_element("p", {}, {}, "This is the main place for generating resources"), _mu_element("div", {
       className: "itemGroups"
     }, {}, _mu_child(() => renderItemGroups()), _mu_choose({
       nodeGetter: () => _mu_element("p", {}, {}, _mu_child(() => model.activeGroup?.info)),
-      conditionGetter: () => !!model.activeGroup
+      conditionGetter: () => model.activeGroup.u
     })), _mu_element("div", {
       className: "items"
     }, {}, _mu_child(() => renderItems()), _mu_choose({
       nodeGetter: () => _mu_element("p", {}, {}, _mu_child(() => model.activeItem?.info)),
-      conditionGetter: () => !!model.activeItem
+      conditionGetter: () => model.activeItem.u
     })), _mu_element("div", {
       className: "flavors"
     }, {}, _mu_child(() => renderFlavors())), _mu_choose({
       nodeGetter: () => _mu_element("div", {
         className: "activeFlavor"
-      }, {}, _mu_child(() => renderActiveFlavor())),
-      conditionGetter: () => !!model.activeFlavor
+      }, {}, _mu_child(() => Swapper(renderActiveFlavor))),
+      conditionGetter: () => model.activeFlavor.m >= 0
     })),
     conditionGetter: () => model.activeTab === Tabs.Generate
   }), _mu_choose({
     nodeGetter: () => _mu_element("div", {
       className: "discover"
-    }, {}, "Discover : unlock new items in the generate tab.", _mu_element("ul", {}, {}, _mu_element("li", {}, {}, "filter items?"), _mu_element("li", {}, {}, "add items to 'crafting table'?"), _mu_element("li", {}, {}, "test create? (no penalty)")), _mu_element("div", {}, {}, _mu_element("h3", {}, {}, "Inventory"), _mu_element("div", {}, {}, _mu_child(() => ForEach(model.inventory, x => renderInventoryItem(x))))), _mu_element("div", {}, {})),
+    }, {}, _mu_element("p", {}, {}, "This is the main place for discovering new resources."), "Discover : unlock new items in the generate tab.", _mu_element("ul", {}, {}, _mu_element("li", {}, {}, "filter items? (text input, group/item select, quantity filter)"), _mu_element("li", {}, {}, "add items to 'crafting table'?"), _mu_element("li", {}, {}, "test create? (no penalty)")), _mu_element("div", {}, {}, _mu_element("h3", {}, {}, "Inventory"), _mu_element("div", {}, {}, _mu_child(() => ForEach(() => Object.values(model.inventory).sort((a, b) => a.f.n.localeCompare(b.f.n)), x => renderFlavorAmount(x, 1))))), _mu_element("div", {}, {})),
     conditionGetter: () => model.activeTab === Tabs.Discover
   }), _mu_choose({
     nodeGetter: () => _mu_element("div", {
       className: "settings"
-    }, {}, "Settings", _mu_element("ul", {}, {}, _mu_element("li", {}, {}, "show/hide info"), _mu_element("li", {}, {}, "save/load"), _mu_element("li", {}, {}, "hard reset game"), _mu_element("li", {}, {}, "infinite mode (all unlocked, infinite of g0-g3? items)"), _mu_element("li", {}, {}, "auto search on flavor click"), _mu_element("li", {}, {}), _mu_element("li", {}, {}))),
+    }, {}, _mu_element("p", {}, {}, "This is where you can change game settings."), "Settings", _mu_element("ul", {}, {}, _mu_element("li", {}, {}, "show/hide info"), _mu_element("li", {}, {}, "save/load"), _mu_element("li", {}, {}, "hard reset game"), _mu_element("li", {}, {}, "infinite mode (all unlocked, infinite of g0-g3? items)"), _mu_element("li", {}, {}, "auto search on flavor click"), _mu_element("li", {}, {}), _mu_element("li", {}, {}))),
     conditionGetter: () => model.activeTab === Tabs.Settings
   }), _mu_choose({
     nodeGetter: () => _mu_element("div", {
       className: "help"
-    }, {}, "Help", _mu_element("ul", {}, {}, _mu_element("li", {}, {}, "Buttons"), _mu_element("li", {}, {}, "Generating"), _mu_element("li", {}, {}, "Discovery"), _mu_element("li", {}, {}, "about"))),
+    }, {}, _mu_element("p", {}, {}, "This is where you can find information about the game."), "Help", _mu_element("ul", {}, {}, _mu_element("li", {}, {}, "Buttons"), _mu_element("li", {}, {}, "Generating"), _mu_element("li", {}, {}, "Discovery"), _mu_element("li", {}, {}, "about"))),
     conditionGetter: () => model.activeTab === Tabs.Help
   }), _mu_element("br", {}, {}), _mu_element("div", {
     className: "mutraction"
