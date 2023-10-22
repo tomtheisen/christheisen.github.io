@@ -1,6 +1,12 @@
 //GETTING SOME LAG AFTER ONLY A FEW GENERATORS!
-
+	//Test: 
+		//remove the defaultTypes
+		//inventory/generators back to arrays
+		
+		
 //tab doesn't highlight correctly.
+
+//able to downgrade generators?
 
 //save/load
 	//save/load object
@@ -73,7 +79,7 @@ function generatorCost(input: Generator){
 }
 
 function findInventoryItem(input: Flavor) : FlavorAmount {
-	if(!model.inventory.hasOwnProperty(input.n)){
+	if(!model.inventory[input.n]){
 		model.inventory[input.n] = { f: input, a: 0 };
 	}
 	
@@ -81,7 +87,7 @@ function findInventoryItem(input: Flavor) : FlavorAmount {
 }
 
 function findGenerator(input: Flavor) : Generator{
-	if(!model.generators.hasOwnProperty(input.n)){
+	if(!model.generators[input.n]){
 		const ci = input.c.map(x => ({c: x, i: model.inventory[x.f.n]}));
 		model.generators[input.n] = { f: input, a: 0, e: true, ci: ci };
 	}

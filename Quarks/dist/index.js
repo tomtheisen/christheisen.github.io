@@ -1213,10 +1213,10 @@ var model = track({
 });
 function generatorCost(input) {
   const item = FlavorMap[input.f.n];
-  return (10 ** item.g) ** input.a;
+  return (2 ** item.g) ** input.a;
 }
 function findInventoryItem(input) {
-  if (!model.inventory.hasOwnProperty(input.n)) {
+  if (!model.inventory[input.n]) {
     model.inventory[input.n] = {
       f: input,
       a: 0
@@ -1225,7 +1225,7 @@ function findInventoryItem(input) {
   return model.inventory[input.n];
 }
 function findGenerator(input) {
-  if (!model.generators.hasOwnProperty(input.n)) {
+  if (!model.generators[input.n]) {
     const ci = input.c.map((x) => ({
       c: x,
       i: model.inventory[x.f.n]

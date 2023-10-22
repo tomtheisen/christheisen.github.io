@@ -1,6 +1,10 @@
 var _frag2;
 import { element as _mu_element, child as _mu_child, choose as _mu_choose } from "mutraction-dom";
 //GETTING SOME LAG AFTER ONLY A FEW GENERATORS!
+//Test: 
+//remove the defaultTypes
+//inventory/generators back to arrays
+//tab doesn't highlight correctly.
 //save/load
 //save/load object
 //inventory {f.name, amount}
@@ -57,10 +61,10 @@ const model = track({
 });
 function generatorCost(input) {
   const item = FlavorMap[input.f.n];
-  return (10 ** item.g) ** input.a;
+  return (2 ** item.g) ** input.a;
 }
 function findInventoryItem(input) {
-  if (!model.inventory.hasOwnProperty(input.n)) {
+  if (!model.inventory[input.n]) {
     model.inventory[input.n] = {
       f: input,
       a: 0
@@ -69,7 +73,7 @@ function findInventoryItem(input) {
   return model.inventory[input.n];
 }
 function findGenerator(input) {
-  if (!model.generators.hasOwnProperty(input.n)) {
+  if (!model.generators[input.n]) {
     const ci = input.c.map(x => ({
       c: x,
       i: model.inventory[x.f.n]
@@ -126,6 +130,7 @@ function generateClick(input) {
   findInventoryItem(input.f).a += 100;
 }
 function generate(input, amount) {
+  //testing pre-computing this and saving it on the generator.
   //const componentInventory = input.f.c.map(x => ({c: x, i: model.inventory[x.f]}));
   input.ci.forEach(x => amount = Math.min(Math.floor(x.i.a / x.c.a), amount));
   if (amount <= 0) {
