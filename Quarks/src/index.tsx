@@ -51,7 +51,8 @@ import {
 	RecipeSearchResults, ItemMap, FlavorMap, ComponentMap, Settings,
 	defaultSettings, defaultItemGroup, defaultItem, defaultFlavor, defaultFlavorAmount
 } from "./types.js";
-import { track, ForEach, effect, Swapper } from "mutraction-dom";
+import { track, ForEach, effect, Swapper, defaultTracker } from "mutraction-dom";
+defaultTracker.setOptions({ trackHistory: false });
 
 let activeTab=0;
 const model = track({ 
@@ -140,7 +141,7 @@ function generate(input: Generator, amount: number){
 	//testing pre-computing this and saving it on the generator.
 	//const componentInventory = input.f.c.map(x => ({c: x, i: model.inventory[x.f]}));
 
-	
+
 	input.ci.forEach(x => amount = Math.min(Math.floor(x.i.a/x.c.a), amount));
 	if(amount <= 0){return;}
 	
@@ -203,37 +204,31 @@ function gotoFlavor(input: Flavor){
 
 function renderItemGroups(){
 	return ForEach(model.data, x => 
-		<button className={`itemGroup${!x.u ? ' hide' : ''}${x===model.activeGroup? ' selected': ''}`} onclick={()=>setGroup(x)}>{x.n}</button>
+		<button className="itemGroup" classList={{hide: !x.u, selected: x===model.activeGroup}} onclick={()=>setGroup(x)}>{x.n}</button>
 	);
 }
 
 function renderItems(){
 	return ForEach(() => model.activeGroup?.c ?? [], x => 
-		<button className={`item${!x.u ? ' hide' : ''}${x===model.activeItem? ' selected': ''}`} onclick={()=>setItem(x)}>{x.n}</button>
-		);
-		
+		<button className="item" classList={{hide: !x.u, selected: x===model.activeItem}} onclick={()=>setItem(x)}>{x.n}</button>
+	);
+
 }
 
 function renderFlavors(){
 	return ForEach(() => model.activeItem?.c ?? [], x => 
-		<button className={`flavor${!x.u ? ' hide' : ''}${x===model.activeFlavor? ' selected': ''}`} onclick={()=>setFlavor(x)}>{x.n}</button>
-		);
+		<button className="flavor" classList={{hide: !x.u, selected: x===model.activeFlavor}} onclick={()=>setFlavor(x)}>{x.n}</button>
+	);
 }
 
 function renderGenerateButton(input: FlavorAmount){
-	const i = FlavorMap[input.f.n];
-	const canDo = hasComponents(input.f);
-	const className = `generateButton${!canDo?' disabled':''}`;
-	return <button title={`Generate a ${input.f.n}`} className={className} onclick={()=>generateClick(input)}>++</button>
+	return <button title={`Generate a ${input.f.n}`} className="generateButton" classList={{disabled: !hasComponents(input.f)}} onclick={()=>generateClick(input)}>++</button>
 }
 
 function renderActiveFlavor(){
 	if(!model.activeFlavor){return <div className='hide'></div>}
 	
-	const input = model.activeFlavor as Flavor;
-	const inv = findInventoryItem(input);
-	const i = FlavorMap[input.n];
-	const g = ItemMap[i.n];
+	const inv = findInventoryItem(model.activeFlavor);
 	
 	return <>
 		<div className='row'>
@@ -247,7 +242,7 @@ function renderActiveFlavor(){
 			</div>
 			<div className='cell block'>
 				<div className='title'>Generator</div>
-				{renderGenerator(input)}
+				{renderGenerator(model.activeFlavor)}
 			</div>
 			<div className='cell block'>
 				<div className='title'>Components</div>
@@ -269,7 +264,7 @@ function renderActiveFlavor(){
 						Spoiler Alert: This will show all items this item is a component for; including ones you have not unlocked yet.
 						If you want to find everything the hard way then don't click.
 					</p>
-					<button onclick={() => recipeSearch(input)}>
+					<button onclick={() => recipeSearch(model.activeFlavor)}>
 						Search
 					</button>
 				</div>
@@ -326,7 +321,7 @@ function renderGenerator(input: Flavor){
 }
 
 function renderSearchResults(){
-	return ForEach(() => model.recipeSearchResults, x => {
+	return ForEach(model.recipeSearchResults, x => {
 		const inv = findInventoryItem(x.f);
 
 		return <p>
@@ -336,13 +331,15 @@ function renderSearchResults(){
 				<div className='cell'>{renderGenerateButton(inv)}</div>
 			</div>
 			<ul className='componentList'>
-				{ForEach(() => x.f.c, y => renderFlavorAmount(y,2))}
+				{ForEach(x.f.c, y => renderFlavorAmount(y,2))}
 			</ul>
 		</p>
 	});
 }
 
 function mainLoop(){
+	defaultTracker.startTransaction();
+
 	const now = performance.now();
 	model.gameClock += now-model.lastUpdate;
 	model.lastUpdate = now;
@@ -355,7 +352,7 @@ function mainLoop(){
 		//do generates
 		Object.values(model.generators).forEach(x => {
 			if(!x.e){return;}
-			
+
 			generate(x, x.a);
 		});
 		
@@ -365,6 +362,8 @@ function mainLoop(){
 			model.lastSave = saveRate;
 		}
 	}
+
+	defaultTracker.commit();
 }
 
 function init(){
