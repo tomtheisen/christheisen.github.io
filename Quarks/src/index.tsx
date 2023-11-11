@@ -51,10 +51,9 @@ import {
 	RecipeSearchResults, ItemMap, FlavorMap, ComponentMap, Settings,
 	defaultSettings, defaultItemGroup, defaultItem, defaultFlavor, defaultFlavorAmount
 } from "./types.js";
-import { track, ForEach, effect, Swapper, defaultTracker } from "mutraction-dom";
+import { track, ForEach, effect, Swapper, defaultTracker, DependencyList } from "mutraction-dom";
 defaultTracker.setOptions({ trackHistory: false });
 
-let activeTab=0;
 const model = track({ 
 	data: data,
 	activeTab: 0, 
@@ -80,11 +79,7 @@ function generatorCost(input: Generator){
 }
 
 function findInventoryItem(input: Flavor) : FlavorAmount {
-	if(!model.inventory[input.n]){
-		model.inventory[input.n] = { f: input, a: 0 };
-	}
-	
-	return model.inventory[input.n];
+	return model.inventory[input.n] ??= { f: input, a: 0 };
 }
 
 function findGenerator(input: Flavor) : Generator{
@@ -101,21 +96,32 @@ function recipeSearch(input: Flavor){
 	
 	const c = ComponentMap[input.n];
 
-	c.forEach(f => {
+	for (const f of c) {
 		const i = FlavorMap[f.n];
 		const g = ItemMap[i.n];
 		
+		// TODO: length propref is leaking subscribers
+		// It seems to be stale ForEach instances
 		model.recipeSearchResults.push({ g: g, i: i, f: f});
-	});
+	};
+}
+
+{
+	const recipeLengthProp = defaultTracker.getPropRef(() => model.recipeSearchResults.length);
+	const original = recipeLengthProp.subscribe;
+	recipeLengthProp.subscribe = (dl: DependencyList) => {
+		console.trace("[recipeSearchResults] propref subscribe");
+		return original.call(recipeLengthProp, dl);
+	}
 }
 
 function hasComponents(input: Flavor):boolean{
 	let output = true;
 	
-	input.c.forEach(c => {
+	for (const c of input.c) {
 		const inv = findInventoryItem(c.f);
-		if(inv.a < c.a){output = false; return;}
-	});
+		if(inv.a < c.a){output = false; continue;}
+	}
 
 	return output;
 }
@@ -124,7 +130,7 @@ function generateClick(input: FlavorAmount) {
 	const componentInventory = input.f.c.map(x => ({c: x, i: findInventoryItem(x.f)}));
 	
 	let amount = 1;
-	componentInventory.forEach(x => amount = Math.min(Math.floor(x.i.a/x.c.a), amount));
+	for (const x of componentInventory) amount = Math.min(Math.floor(x.i.a/x.c.a), amount);
 	if(amount <= 0){return;}
 
 	//If this is a new item it needs to be unlocked. 
@@ -133,7 +139,7 @@ function generateClick(input: FlavorAmount) {
 	i.u = true;
 	ItemMap[i.n].u = true;
 	
-	componentInventory.forEach(x => x.i.a -= x.c.a);
+	for (const x of componentInventory) x.i.a -= x.c.a;
 	findInventoryItem(input.f).a+=100;
 }
 
@@ -142,10 +148,10 @@ function generate(input: Generator, amount: number){
 	//const componentInventory = input.f.c.map(x => ({c: x, i: model.inventory[x.f]}));
 
 
-	input.ci.forEach(x => amount = Math.min(Math.floor(x.i.a/x.c.a), amount));
+	for (const x of input.ci) amount = Math.min(Math.floor(x.i.a/x.c.a), amount);
 	if(amount <= 0){return;}
 	
-	input.ci.forEach(x => x.i.a -= x.c.a * amount);
+	for (const x of input.ci) x.i.a -= x.c.a * amount;
 	findInventoryItem(input.f).a+=amount;
 }
 
@@ -161,7 +167,7 @@ function upgradeGenrator(input: Flavor){
 }
 
 function setTab(input: number){
-	Object.values(tabButtons).forEach(x => x.classList.remove('selected'));
+	for (const x of Object.values(tabButtons)) x.classList.remove('selected');
 	tabButtons[`tab_${input}`].classList.add('selected');
 	
 	model.activeTab = input;
@@ -222,7 +228,13 @@ function renderFlavors(){
 }
 
 function renderGenerateButton(input: FlavorAmount){
-	return <button title={`Generate a ${input.f.n}`} className="generateButton" classList={{disabled: !hasComponents(input.f)}} onclick={()=>generateClick(input)}>++</button>
+	return <button title={`Generate a ${input.f.n}`} 
+		className="generateButton" 
+		classList={{disabled: !hasComponents(input.f)}} 
+		onclick={()=>generateClick(input)}
+	>
+		++
+	</button>
 }
 
 function renderActiveFlavor(){
@@ -236,7 +248,7 @@ function renderActiveFlavor(){
 				<div className='title'>Inventory</div>
 				<div style={{display: 'flex'}}>
 					<div>
-						<div className='ownedItem'>Owned: {inv?.a ?? 0} {renderGenerateButton(inv)}</div>
+						<div className='ownedItem'>Owned: {inv.a} {renderGenerateButton(inv)}</div>
 					</div>
 				</div>
 			</div>
@@ -249,7 +261,7 @@ function renderActiveFlavor(){
 				<div>
 					<div>{
 						model.activeFlavor?.c?.length ? 
-							ForEach(() => model.activeFlavor?.c ?? [], x => renderFlavorAmount(x,2)) :
+							ForEach(() => model.activeFlavor.c, x => renderFlavorAmount(x,2)) :
 							<span>This is an elementary particle, it does not have components.</span>
 					}
 					</div>
@@ -269,7 +281,7 @@ function renderActiveFlavor(){
 					</button>
 				</div>
 				<div mu:if={!!model.recipeSearchResults.length}>
-					{Swapper(() => renderSearchResults())}
+					{renderSearchResults()}
 				</div>
 			</div>
 		</div>
@@ -279,19 +291,27 @@ function renderActiveFlavor(){
 //1: inventory, 2: flavor component
 //a bit smelly, but these ended up being almost exactly the same.
 function renderFlavorAmount(input: FlavorAmount, type: number){
-	const inv = type===1 ? input : findInventoryItem(input.f);
-	const i : Item = FlavorMap[input.f.n];
-	const g : ItemGroup = ItemMap[i.n];
+	const none = null as any;
+	const cs = track({
+		inv: none as FlavorAmount,
+		i: none as Item,
+		g: none as ItemGroup,
+	});
 
-	let amount = `Owned:${inv.a}`;
-	if(type===2){ amount += ` / Need:${input.a}` };
-
+	effect(() => {
+		cs.inv = type===1 ? input : findInventoryItem(input.f);
+		cs.i = FlavorMap[input.f.n];
+		cs.g = ItemMap[cs.i.n];
+	});
 
 	return <div className='row'>
-		<div className='cell'><button  title={`Go To ${g.n}.${i.n}.${input.f.n}`} className='goto' onclick={() => gotoFlavor(input.f)}>»</button></div>
-		<div className='cell'>{g.n}.{i.n}.{input.f.n}</div>
-		<div className='cell'>{amount}</div>
-		<div className='cell'>{renderGenerateButton(inv)}</div>
+		<div className='cell'><button  title={`Go To ${cs.g.n}.${cs.i.n}.${input.f.n}`} className='goto' onclick={() => gotoFlavor(input.f)}>»</button></div>
+		<div className='cell'>{cs.g.n}.{cs.i.n}.{input.f.n}</div>
+		<div className='cell'>
+			Owned:{cs.inv.a}
+			<span mu:if={type === 2}> / Need:{input.a}</span>
+		</div>
+		<div className='cell'>{renderGenerateButton(cs.inv)}</div>
 	</div>
 }
 
@@ -338,7 +358,7 @@ function renderSearchResults(){
 }
 
 function mainLoop(){
-	defaultTracker.startTransaction();
+	// defaultTracker.startTransaction();
 
 	const now = performance.now();
 	model.gameClock += now-model.lastUpdate;
@@ -350,11 +370,11 @@ function mainLoop(){
 		model.gameClock -= updateRate;
 
 		//do generates
-		Object.values(model.generators).forEach(x => {
-			if(!x.e){return;}
+		for (const x of Object.values(model.generators)) {
+			if(!x.e){continue;}
 
 			generate(x, x.a);
-		});
+		}
 		
 		//sometimes save
 		if(--model.lastSave<=0){
@@ -363,7 +383,7 @@ function mainLoop(){
 		}
 	}
 
-	defaultTracker.commit();
+	// defaultTracker.commit();
 }
 
 function init(){
@@ -386,10 +406,15 @@ function init(){
 	}
 }
 
+function getSortedInventory() {
+	return Object.values(model.inventory).sort((a,b) => a.f.n.localeCompare(b.f.n));
+}
+
 const app = (
     <>
 		<div mu:if={!model.interval} className='loading'>{model.loadingStatus}</div>
-		<div mu:if={model.gameClock > 2*updateRate}>{model.gameClock}</div>
+		{/* commented out for diagnostic purpose */}
+		<div mu:if={false && model.gameClock > 2 * updateRate}>{model.gameClock}</div>
 		<div mu:else>
 			<h1>Quarks</h1>
 			<div id='menu'>
@@ -429,7 +454,7 @@ const app = (
 				<div>
 					<h3>Inventory</h3>
 					<div>
-					{ForEach(() => Object.values(model.inventory).sort((a,b) => a.f.n.localeCompare(b.f.n)), x => renderFlavorAmount(x,1))}
+					{ForEach(getSortedInventory, x => renderFlavorAmount(x,1))}
 					</div>
 				</div>
 				<div>
