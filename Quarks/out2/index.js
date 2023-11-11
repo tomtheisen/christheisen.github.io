@@ -5,6 +5,7 @@ import { element as _mu_element, child as _mu_child, choose as _mu_choose } from
 //remove the defaultTypes
 //inventory/generators back to arrays
 //tab doesn't highlight correctly.
+//able to downgrade generators?
 //save/load
 //save/load object
 //inventory {f.name, amount}

@@ -56,7 +56,7 @@ function makeProxyHandler(model2, tracker) {
       const existingProxy = result[ProxyOf];
       if (existingProxy) {
         if (existingProxy[TrackerOf] !== tracker) {
-          throw Error("Object cannot be tracked by multiple tracker isntances");
+          throw Error("Object cannot be tracked by multiple tracker instances");
         }
         result = existingProxy;
       } else {
@@ -210,7 +210,7 @@ var PropReference = class {
     const subscriberSnapshot = Array.from(this.#subscribers);
     this.#notifying = true;
     for (const dep of subscriberSnapshot)
-      dep.notifySubscribers();
+      dep.notifySubscribers(this);
     this.#notifying = false;
   }
   get current() {
@@ -254,10 +254,10 @@ var DependencyList = class {
     this.#subscribers.add(callback);
     return { dispose: () => this.#subscribers.delete(callback) };
   }
-  notifySubscribers() {
+  notifySubscribers(trigger) {
     const subscriberSnapshot = Array.from(this.#subscribers);
     for (const callback of subscriberSnapshot)
-      callback();
+      callback(trigger);
   }
   endDependencyTrack() {
     this.#tracker.endDependencyTrack(this);
@@ -339,6 +339,8 @@ var Tracker = class {
     }
     if (appliedOptions.trackHistory) {
       this.#operationHistory = [];
+    } else {
+      this.#operationHistory = void 0;
     }
     this.options = Object.freeze(appliedOptions);
   }
@@ -641,12 +643,12 @@ function effect(sideEffect, options = {}) {
     dep.untrackAll();
     subscription.dispose();
   };
-  function effectDependencyChanged() {
+  function effectDependencyChanged(trigger) {
     if (typeof lastResult === "function")
       lastResult();
     effectDispose();
     dep = tracker.startDependencyTrack();
-    lastResult = sideEffect(dep);
+    lastResult = sideEffect(dep, trigger);
     dep.endDependencyTrack();
     subscription = dep.subscribe(effectDependencyChanged);
   }
@@ -687,52 +689,78 @@ function doApply(el, mod) {
       throw Error("Unknown node modifier type: " + mod.$muType);
   }
 }
-function element(name, staticAttrs, dynamicAttrs, ...children) {
-  const el = document.createElement(name);
+function element(tagName, staticAttrs, dynamicAttrs, ...children) {
+  const el = document.createElement(tagName);
   el.append(...children);
   let syncEvents;
-  for (let [name2, value] of Object.entries(staticAttrs)) {
-    switch (name2) {
+  let diagnosticApplied = false;
+  let diagnosticUpdates = 0;
+  let doneConstructing = false;
+  for (let [name, value] of Object.entries(staticAttrs)) {
+    switch (name) {
       case "mu:syncEvent":
         syncEvents = value;
         break;
       case "mu:apply":
         doApply(el, value);
         break;
+      case "mu:diagnostic":
+        diagnosticApplied = true;
+        break;
       default:
-        el[name2] = value;
+        el[name] = value;
         break;
     }
   }
+  if (diagnosticApplied) {
+    console.trace(`[mu:diagnostic] Creating ${tagName}`);
+  }
   const syncedProps = syncEvents ? [] : void 0;
-  for (let [name2, getter] of Object.entries(dynamicAttrs)) {
-    if (syncedProps && name2 in el) {
+  for (let [name, getter] of Object.entries(dynamicAttrs)) {
+    if (syncedProps && name in el) {
       const propRef = defaultTracker.getPropRefTolerant(getter);
       if (propRef) {
-        syncedProps.push([name2, propRef]);
+        syncedProps.push([name, propRef]);
       }
     }
-    switch (name2) {
+    switch (name) {
       case "style": {
-        const sub = effect(() => {
+        const callback = !diagnosticApplied ? function updateStyle() {
           Object.assign(el.style, getter());
-        }, suppress);
+        } : function updateStyleDiagnostic(dl, trigger) {
+          if (doneConstructing)
+            console.trace(`[mu:diagnostic] Updating ${tagName}`, { attribute: name, trigger, updates: ++diagnosticUpdates });
+          Object.assign(el.style, getter());
+        };
+        const sub = effect(callback, suppress);
         registerCleanup(el, sub);
         break;
       }
       case "classList": {
-        const sub = effect(() => {
+        const callback = !diagnosticApplied ? function updateClassList() {
           const classMap = getter();
-          for (const [name3, on] of Object.entries(classMap))
-            el.classList.toggle(name3, !!on);
-        }, suppress);
+          for (const [name2, on] of Object.entries(classMap))
+            el.classList.toggle(name2, !!on);
+        } : function updateClassListDiagnostic(dl, trigger) {
+          if (doneConstructing)
+            console.trace(`[mu:diagnostic] Updating ${tagName}`, { attribute: name, trigger, updates: ++diagnosticUpdates });
+          const classMap = getter();
+          for (const [name2, on] of Object.entries(classMap))
+            el.classList.toggle(name2, !!on);
+        };
+        const sub = effect(callback, suppress);
         registerCleanup(el, sub);
         break;
       }
       default: {
-        const sub = effect(() => {
-          el[name2] = getter();
-        }, suppress);
+        const callback = !diagnosticApplied ? function updateAttribute() {
+          el[name] = getter();
+        } : function updateAttributeDiagnostic(dl, trigger) {
+          if (doneConstructing)
+            console.trace(`[mu:diagnostic] Updating ${tagName}`, { attribute: name, trigger, updates: ++diagnosticUpdates });
+          el[name] = getter();
+        };
+        const sub = effect(callback, suppress);
         registerCleanup(el, sub);
         break;
       }
@@ -741,17 +769,18 @@ function element(name, staticAttrs, dynamicAttrs, ...children) {
   if (syncEvents && syncedProps?.length) {
     for (const e of syncEvents.matchAll(/\S+/g)) {
       el.addEventListener(e[0], () => {
-        for (const [name2, propRef] of syncedProps)
-          propRef.current = el[name2];
+        for (const [name, propRef] of syncedProps)
+          propRef.current = el[name];
       });
     }
   }
+  doneConstructing = true;
   return el;
 }
 function child(getter) {
   let node = document.createTextNode("");
   let sub = void 0;
-  sub = effect((dl) => {
+  sub = effect(function childEffect(dl) {
     const val = getter();
     if (val instanceof Node) {
       dl.untrackAll();
@@ -857,12 +886,13 @@ function ForEach(array, map) {
   const result = new ElementSpan();
   const outputs = [];
   const arrayDefined = array ?? [];
-  effect(function forEachLengthEffect(lengthDep) {
+  const lengthSubscription = effect(function forEachLengthEffect(lengthDep) {
     for (let i = outputs.length; i < arrayDefined.length; i++) {
       const output = { container: new ElementSpan() };
       outputs.push(output);
-      effect(function forEachItemEffect(dep) {
+      output.subscription = effect(function forEachItemEffect(dep) {
         output.cleanup?.();
+        output.container.cleanup();
         const item = arrayDefined[i];
         const projection = item !== void 0 ? map(item, i, arrayDefined) : document.createTextNode("");
         if (isNodeOptions(projection)) {
@@ -876,12 +906,20 @@ function ForEach(array, map) {
       result.append(output.container.removeAsFragment());
     }
     while (outputs.length > arrayDefined.length) {
-      const { cleanup: cleanup2, container } = outputs.pop();
-      cleanup2?.();
-      container.cleanup;
+      cleanupOutput(outputs.pop());
     }
   }, suppress2);
+  result.registerCleanup({ dispose() {
+    outputs.forEach(cleanupOutput);
+  } });
+  result.registerCleanup(lengthSubscription);
   return result.removeAsFragment();
+  function cleanupOutput({ cleanup: cleanup2, container, subscription }) {
+    cleanup2?.();
+    subscription?.dispose();
+    container.removeAsFragment();
+    container.cleanup();
+  }
 }
 var suppress3 = { suppressUntrackedWarning: true };
 function getEmptyText() {
